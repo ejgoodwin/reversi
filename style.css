@@ -1,0 +1,21 @@
+/* Style board */
+.board {
+
+}
+.board-square {
+	height: 30px;
+	width: 30px;
+	background: khaki;
+}
+
+.square-black {
+	background: black;
+}
+
+.square-white {
+	background: white;
+}
+
+.available-move {
+	background: yellow;
+}
