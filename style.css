@@ -1,21 +1,23 @@
 /* Style board */
 .board {
-
+	display: flex;
+	flex-wrap: wrap;
+	width: 250px;
 }
 .board-square {
 	height: 30px;
-	width: 30px;
+	width: 12.5%;
 	background: khaki;
 }
 
-.square-black {
+[data-available='available'] {
+	background: yellow;
+}
+
+[data-player='b'] {
 	background: black;
 }
 
-.square-white {
+[data-player='w'] {
 	background: white;
-}
-
-.available-move {
-	background: yellow;
 }
