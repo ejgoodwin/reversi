@@ -1,4 +1,4 @@
-// TODO: individual direction methods work but combined evaluation doesn't.
+// TODO: clean up, use evaluation functions.
 
 class GameLogic {
 	constructor(board, position, currentPlayer, nextPlayer) {
@@ -15,8 +15,8 @@ class GameLogic {
 			let x = Math.floor(this.position/8);
 			let condition = this.position-(x * 8);
 			let increment = -8;
-			//this._evaluationFunctionNegative([...this.boardState], initialExp, condition, increment);
-			this._checkNorth([...this.boardState], this.position);
+			this._evaluationFunctionNegative([...this.boardState], initialExp, condition, increment);
+			//this._checkNorth([...this.boardState], this.position);
 		}
 
 		// East
@@ -25,8 +25,8 @@ class GameLogic {
 			let x = this.position % 8;
 			let condition = this.position+(7-x);
 			let increment = 1;
-			//this._evaluationFunctionPositive([...this.boardState], initialExp, condition, increment);
-			this._checkEast([...this.boardState], this.position);
+			this._evaluationFunctionPositive([...this.boardState], initialExp, condition, increment);
+			//this._checkEast([...this.boardState], this.position);
 		}
 
 		return this.boardState;
