@@ -1,21 +1,53 @@
 /* Style board */
 .board {
-
+	display: flex;
+	flex-wrap: wrap;
+	width: 250px;
 }
 .board-square {
+	align-items: center;
+	background: #399e42;
+	border: 1px solid black;
+	display: flex;
 	height: 30px;
-	width: 30px;
-	background: khaki;
+	justify-content: center;
+	padding: 0;
+	width: 12.5%;
 }
 
-.square-black {
+.board-square:first-of-type {
+	border-top-left-radius: 5px;
+}
+
+.board-square:nth-of-type(8) {
+	border-top-right-radius: 5px;
+}
+
+.board-square:nth-of-type(57) {
+	border-bottom-left-radius: 5px;
+}
+
+.board-square:nth-of-type(64) {
+	border-bottom-right-radius: 5px;
+}
+
+[data-available='available'] {
+	background: yellow;
+}
+
+[data-player='b']::after,
+[data-player='w']::after {
+	border-radius: 50%;
+	content: '';
+	display: block;
+	height: 24px;
+	width: 24px;
+}
+
+[data-player='b']::after {
 	background: black;
 }
 
-.square-white {
+[data-player='w']::after {
 	background: white;
-}
-
-.available-move {
-	background: yellow;
 }
