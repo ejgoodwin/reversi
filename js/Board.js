@@ -1,6 +1,3 @@
-// TODO: broken because of shallow/deep copying.
-// 2d array will not be copied, so needs changing to 1d array.
-
 import GameLogic from './GameLogic.js';
 import Player from './Player.js';
 
@@ -10,21 +7,20 @@ class Board {
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0,
-			0,0,'b','b','w',0,0,0,
+			0,0,0,'b','w',0,0,0,
 			0,0,0,'w','b',0,0,0,
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0
 		];
 		this.boardEl = document.querySelector('.board');
-		this.currentPlayer = null;
-		this.nextPlayer = null;
 		this.player = new Player();
+		this.wrongSquareEl = document.querySelector('.wrong-square');
+		this.playerMessageEl = document.querySelector('.current-player');
 	}
 
 	_renderBoard() {
 		this.board.forEach((row, index) => {
-
 			//Create square button.
 			const square = document.createElement('button');
 			// Add classes and data attributes.
@@ -32,42 +28,45 @@ class Board {
 			square.dataset.position = index;
 			// Add event listener.
 			square.addEventListener('click', (e) => this._handleSquareClick(e));
-
-			// row.forEach((item, index) => {
-			// 	// Create square button.
-			// 	const square = document.createElement('button');
-			// 	// Add classes and data attributes.
-			// 	square.classList.add('board-square');
-			// 	square.dataset.position = `${boardRowNum}-${index}`;
-			// 	// Add event listener.
-			// 	square.addEventListener('click', (e) => this._handleSquareClick(e));
-			// 	boardRow.appendChild(square);
-			// });
 			this.boardEl.appendChild(square);
 		});
+
+		this.updatePlayerMessage();
+	}
+
+	updatePlayerMessage() {
+		this.playerMessageEl.innerHTML = this.player.getCurrentPlayer();
+	}
+
+	wrongSquareMessage() {
+		this.wrongSquareEl.innerHTML = 'Square unavailable, try again!';
+		setTimeout(() => {
+			this.wrongSquareEl.innerHTML = '';
+		}, 2000);
 	}
 
 	_handleSquareClick(e) {
 		// Get clicked square's array index.
 		const position = parseInt(e.target.dataset.position);
-
 		// Check clicked square is available.
 		if (this.board[position] != 0) {
 			return;
 		}
 
-		const currentPlayer = this.player.returnCurrentPlayer();
-		const nextPlayer = this.player.returnNextPlayer();
-
+		const currentPlayer = this.player.getCurrentPlayer();
+		const nextPlayer = this.player.getNextPlayer();
 		const takeTurn = new GameLogic([...this.board], position, currentPlayer, nextPlayer);
 		const newBoard = takeTurn.checkNextItem();
-		
-		if (newBoard) {
-			this.board = newBoard;
+		// If the click results in a successful move, assign new board state to board.
+		if (newBoard.successfulMove) {
+			this.board = newBoard.newBoard;
 			this._colourSquares();
 			// Next player.
 			this.player.changePlayer();
+			this.updatePlayerMessage();
 			console.log(currentPlayer);
+		} else { // if clicked square is not available, show message.
+			this.wrongSquareMessage();
 		}
 	}
 

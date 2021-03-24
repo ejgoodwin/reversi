@@ -14,11 +14,11 @@ class Player {
 		}
 	}
 
-	returnNextPlayer() {
+	getNextPlayer() {
 		return this.nextPlayer;
 	}
 
-	returnCurrentPlayer() {
+	getCurrentPlayer() {
 		return this.currentPlayer;
 	}
 }

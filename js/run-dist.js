@@ -1,25 +1,23 @@
 /******/ (function() { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ([
 /* 0 */,
 /* 1 */
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var _Player_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-// TODO: broken because of shallow/deep copying.
-// 2d array will not be copied, so needs changing to 1d array.
 
 
 
 class Board {
   constructor() {
-    this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     this.boardEl = document.querySelector('.board');
-    this.currentPlayer = null;
-    this.nextPlayer = null;
     this.player = new _Player_js__WEBPACK_IMPORTED_MODULE_1__.default();
+    this.wrongSquareEl = document.querySelector('.wrong-square');
+    this.playerMessageEl = document.querySelector('.current-player');
   }
 
   _renderBoard() {
@@ -30,19 +28,21 @@ class Board {
       square.classList.add('board-square');
       square.dataset.position = index; // Add event listener.
 
-      square.addEventListener('click', e => this._handleSquareClick(e)); // row.forEach((item, index) => {
-      // 	// Create square button.
-      // 	const square = document.createElement('button');
-      // 	// Add classes and data attributes.
-      // 	square.classList.add('board-square');
-      // 	square.dataset.position = `${boardRowNum}-${index}`;
-      // 	// Add event listener.
-      // 	square.addEventListener('click', (e) => this._handleSquareClick(e));
-      // 	boardRow.appendChild(square);
-      // });
-
+      square.addEventListener('click', e => this._handleSquareClick(e));
       this.boardEl.appendChild(square);
     });
+    this.updatePlayerMessage();
+  }
+
+  updatePlayerMessage() {
+    this.playerMessageEl.innerHTML = this.player.getCurrentPlayer();
+  }
+
+  wrongSquareMessage() {
+    this.wrongSquareEl.innerHTML = 'Square unavailable, try again!';
+    setTimeout(() => {
+      this.wrongSquareEl.innerHTML = '';
+    }, 2000);
   }
 
   _handleSquareClick(e) {
@@ -53,19 +53,23 @@ class Board {
       return;
     }
 
-    const currentPlayer = this.player.returnCurrentPlayer();
-    const nextPlayer = this.player.returnNextPlayer();
+    const currentPlayer = this.player.getCurrentPlayer();
+    const nextPlayer = this.player.getNextPlayer();
     const takeTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default([...this.board], position, currentPlayer, nextPlayer);
-    const newBoard = takeTurn.checkNextItem();
+    const newBoard = takeTurn.checkNextItem(); // If the click results in a successful move, assign new board state to board.
 
-    if (newBoard) {
-      this.board = newBoard;
+    if (newBoard.successfulMove) {
+      this.board = newBoard.newBoard;
 
       this._colourSquares(); // Next player.
 
 
       this.player.changePlayer();
+      this.updatePlayerMessage();
       console.log(currentPlayer);
+    } else {
+      // if clicked square is not available, show message.
+      this.wrongSquareMessage();
     }
   }
 
@@ -101,76 +105,123 @@ class Board {
 /* 2 */
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
-// TODO: individual direction methods work but combined evaluation doesn't.
+// TODO: add `while` statements for northeast & nortwest to find edge of board.
 class GameLogic {
   constructor(board, position, currentPlayer, nextPlayer) {
     this.boardState = board;
     this.currentPlayer = currentPlayer;
     this.nextPlayer = nextPlayer;
     this.position = position;
+    this.successfulMove = false;
   }
 
   checkNextItem() {
-    // North
+    let condition;
+    let decrement;
+    let increment;
+    let calcVar;
+    let remainder = this.position % 8; // North
+
     if (this.boardState[this.position - 8] === this.nextPlayer) {
-      let initialExp = -8;
-      let x = Math.floor(this.position / 8);
-      let condition = this.position - x * 8;
-      let increment = -8; //this._evaluationFunctionNegative([...this.boardState], initialExp, condition, increment);
+      condition = 0;
+      decrement = 8;
 
-      this._checkNorth([...this.boardState], this.position);
-    } // East
+      this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'north');
+    } // South.
 
 
-    if (this.boardState[this.position + 1] === this.nextPlayer) {
-      let initialExp = 1;
-      let x = this.position % 8;
-      let condition = this.position + (7 - x);
-      let increment = 1; //this._evaluationFunctionPositive([...this.boardState], initialExp, condition, increment);
+    if (this.boardState[this.position + 8] === this.nextPlayer) {
+      condition = 64;
+      increment = 8;
 
-      this._checkEast([...this.boardState], this.position);
-    }
+      this._evaluationFunctionPositive([...this.boardState], condition, increment, 's');
+    } // Check position is not at right edge of board.
 
-    return this.boardState;
-  }
 
-  _checkNorth(board, index) {
-    // Flip clicked square.
-    board[index] = this.currentPlayer; // Find loop limit.
+    if (remainder != 7) {
+      // Northeast.
+      if (this.boardState[this.position - 7] === this.nextPlayer && remainder != 7) {
+        condition = 0;
+        decrement = 7;
 
-    const divided = Math.floor(index / 8);
-    const limit = index - divided * 8;
+        this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'ne');
+      } // East.
 
-    for (let i = index - 8; i >= limit; i -= 8) {
-      if (board[i] === this.currentPlayer) return; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
 
-      if (board[i] === this.nextPlayer) {
-        board[i] = this.currentPlayer;
+      if (this.boardState[this.position + 1] === this.nextPlayer) {
+        calcVar = this.position % 8;
+        condition = this.position + (7 - calcVar);
+        increment = 1;
 
-        if (board[i - 8] === this.currentPlayer) {
-          this.boardState = board;
-          return;
+        this._evaluationFunctionPositive([...this.boardState], condition, increment, 'e');
+      } // Southeast.
+
+
+      if (this.boardState[this.position + 9] === this.nextPlayer) {
+        condition = this.position;
+        increment = 9; // Find most southeasterly square.
+
+        while (remainder != 7 && condition <= this.boardState.length) {
+          condition += increment;
         }
+
+        this._evaluationFunctionPositive([...this.boardState], condition, increment, 'se');
+      }
+    } // Check position is not at left edge of board.
+
+
+    if (remainder != 0) {
+      // Southwest.
+      if (this.boardState[this.position + 7] === this.nextPlayer) {
+        condition = this.position;
+        increment = 7; // Find most southwesterly square.
+
+        while (remainder != 0 && condition <= this.boardState.length) {
+          condition += increment;
+        }
+
+        this._evaluationFunctionPositive([...this.boardState], condition, increment, 'sw');
+      } // West.
+
+
+      if (this.boardState[this.position - 1] === this.nextPlayer) {
+        calcVar = this.position % 8;
+        condition = this.position - calcVar;
+        decrement = 1;
+
+        this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'w');
+      } // Northwest.
+
+
+      if (this.boardState[this.position - 9] === this.nextPlayer) {
+        condition = 0;
+        decrement = 9;
+
+        this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'nw');
       }
     }
+
+    return {
+      newBoard: this.boardState,
+      successfulMove: this.successfulMove
+    };
   }
 
-  _checkEast(board, index) {
-    // Flip clicked square.
-    board[index] = this.currentPlayer;
-    const x = index % 8;
+  _evaluationFunctionPositive(board, condition, increment, direction) {
+    board[this.position] = this.currentPlayer;
 
-    for (let i = index + 1; i <= index + (7 - x); i++) {
+    for (let i = this.position + increment; i < condition; i += increment) {
       // If the next square belongs to currentPlayer, cannot be flipped -> break.
-      if (board[i] === this.currentPlayer) return; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
+      if (board[i] === this.currentPlayer) break; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
 
       if (board[i] === this.nextPlayer) {
         board[i] = this.currentPlayer;
 
-        if (board[i + 1] === this.currentPlayer) {
+        if (board[i + increment] === this.currentPlayer) {
           this.boardState = board;
+          console.log('from: ' + direction);
+          this.successfulMove = true;
           return;
         }
       }
@@ -179,40 +230,20 @@ class GameLogic {
     ;
   }
 
-  _evaluationFunctionPositive(board, initialExp, condition, increment) {
+  _evaluationFunctionNegative(board, condition, decrement, direction) {
     board[this.position] = this.currentPlayer;
 
-    for (let i = this.position + initialExp; i <= condition; i += increment) {
-      console.log('i = ' + i); // If the next square belongs to currentPlayer, cannot be flipped -> break.
-
+    for (let i = this.position - decrement; i > condition; i -= decrement) {
+      // If the next square belongs to currentPlayer, cannot be flipped -> break.
       if (board[i] === this.currentPlayer) break; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
 
       if (board[i] === this.nextPlayer) {
         board[i] = this.currentPlayer;
 
-        if (board[i + initialExp] === this.currentPlayer) {
+        if (board[i - decrement] === this.currentPlayer) {
           this.boardState = board;
-          return;
-        }
-      }
-    }
-
-    ;
-  }
-
-  _evaluationFunctionNegative(board, initialExp, condition, increment) {
-    board[this.position] = this.currentPlayer;
-
-    for (let i = this.position + initialExp; i >= condition; i -= increment) {
-      console.log('i = ' + i); // If the next square belongs to currentPlayer, cannot be flipped -> break.
-
-      if (board[i] === this.currentPlayer) break; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
-
-      if (board[i] === this.nextPlayer) {
-        board[i] = this.currentPlayer;
-
-        if (board[i - initialExp] === this.currentPlayer) {
-          this.boardState = board;
+          console.log('from: ' + direction);
+          this.successfulMove = true;
           return;
         }
       }
@@ -229,7 +260,6 @@ class GameLogic {
 /* 3 */
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 class Player {
   constructor() {
@@ -247,32 +277,17 @@ class Player {
     }
   }
 
-  returnNextPlayer() {
+  getNextPlayer() {
     return this.nextPlayer;
   }
 
-  returnCurrentPlayer() {
+  getCurrentPlayer() {
     return this.currentPlayer;
   }
 
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (Player);
-
-/***/ }),
-/* 4 */
-/***/ (function() {
-
-class BoardEvaluation {
-  constructor(board) {
-    this.boardCurrentState = board;
-  }
-
-  evaluateBoard() {}
-
-  returnResult() {}
-
-}
 
 /***/ })
 /******/ 	]);
@@ -301,35 +316,6 @@ class BoardEvaluation {
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	!function() {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__webpack_require__.n = function(module) {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				function() { return module['default']; } :
-/******/ 				function() { return module; };
-/******/ 			__webpack_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	!function() {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = function(exports, definition) {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	!function() {
-/******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
-/******/ 	}();
-/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	!function() {
 /******/ 		// define __esModule on exports
@@ -343,18 +329,12 @@ class BoardEvaluation {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 !function() {
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Board_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
-/* harmony import */ var _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _GameLogic_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
 
-
-
-const board = new _Board_js__WEBPACK_IMPORTED_MODULE_0__.default('Erica');
+const board = new _Board_js__WEBPACK_IMPORTED_MODULE_0__.default();
 board.init();
 }();
 /******/ })()
