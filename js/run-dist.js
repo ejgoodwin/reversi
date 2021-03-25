@@ -58,7 +58,9 @@ class Board {
 
 
     this.player.changePlayer();
-    this.updatePlayerMessage();
+    this.updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
+
+    this.backButton.setAttribute('disabled', true);
   }
 
   _handleSquareClick(e) {
