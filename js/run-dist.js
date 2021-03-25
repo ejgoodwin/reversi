@@ -235,7 +235,7 @@ class GameLogic {
   _evaluationFunctionPositive(board, condition, increment, direction) {
     board[this.position] = this.currentPlayer;
 
-    for (let i = this.position + increment; i < condition; i += increment) {
+    for (let i = this.position + increment; i <= condition; i += increment) {
       // If the next square belongs to currentPlayer, cannot be flipped -> break.
       if (board[i] === this.currentPlayer) break; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
 
