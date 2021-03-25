@@ -38,7 +38,7 @@ class Board {
 	}
 
 	updatePlayerMessage() {
-		this.playerMessageEl.innerHTML = this.player.getCurrentPlayer();
+		this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
 	}
 
 	wrongSquareMessage() {
