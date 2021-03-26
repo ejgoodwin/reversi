@@ -13,7 +13,9 @@ class Board {
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0
 		];
+		this.prevBoard = [];
 		this.boardEl = document.querySelector('.board');
+		this.backButton = document.querySelector('.back-btn');
 		this.player = new Player();
 		this.wrongSquareEl = document.querySelector('.wrong-square');
 		this.playerMessageEl = document.querySelector('.current-player');
@@ -31,11 +33,12 @@ class Board {
 			this.boardEl.appendChild(square);
 		});
 
+		this.backButton.addEventListener('click', this._handleBackButton.bind(this));
 		this.updatePlayerMessage();
 	}
 
 	updatePlayerMessage() {
-		this.playerMessageEl.innerHTML = this.player.getCurrentPlayer();
+		this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
 	}
 
 	wrongSquareMessage() {
@@ -43,6 +46,20 @@ class Board {
 		setTimeout(() => {
 			this.wrongSquareEl.innerHTML = '';
 		}, 2000);
+	}
+
+	_handleBackButton() {
+		console.log(this.board);
+		console.log(this.prevBoard);
+		// Assign the previous board to the current board.
+		this.board = this.prevBoard;
+		// Colour square to show prev (now current) board.
+		this._colourSquares();
+		// Switch player back.
+		this.player.changePlayer();
+		this.updatePlayerMessage();
+		// Add `disabled` attribute to only allow one back move.
+		this.backButton.setAttribute('disabled', true);
 	}
 
 	_handleSquareClick(e) {
@@ -59,6 +76,7 @@ class Board {
 		const newBoard = takeTurn.checkNextItem();
 		// If the click results in a successful move, assign new board state to board.
 		if (newBoard.successfulMove) {
+			this.prevBoard = this.board;
 			this.board = newBoard.newBoard;
 			this._colourSquares();
 			// Next player.
@@ -67,6 +85,11 @@ class Board {
 			console.log(currentPlayer);
 		} else { // if clicked square is not available, show message.
 			this.wrongSquareMessage();
+		}
+
+		// Enable back button.
+		if (this.prevBoard.length > 0) {
+			this.backButton.removeAttribute('disabled');
 		}
 	}
 
@@ -80,7 +103,9 @@ class Board {
 				squaresAll[rowIndex].dataset.player = 'b';
 			} else if(square === 'w') {
 				squaresAll[rowIndex].dataset.player = 'w';
-			};
+			} else if (square === 0) {
+				squaresAll[rowIndex].dataset.player = '';
+			}
 		});
 	}
 

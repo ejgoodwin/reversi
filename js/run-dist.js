@@ -14,7 +14,9 @@ __webpack_require__.r(__webpack_exports__);
 class Board {
   constructor() {
     this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.prevBoard = [];
     this.boardEl = document.querySelector('.board');
+    this.backButton = document.querySelector('.back-btn');
     this.player = new _Player_js__WEBPACK_IMPORTED_MODULE_1__.default();
     this.wrongSquareEl = document.querySelector('.wrong-square');
     this.playerMessageEl = document.querySelector('.current-player');
@@ -31,11 +33,12 @@ class Board {
       square.addEventListener('click', e => this._handleSquareClick(e));
       this.boardEl.appendChild(square);
     });
+    this.backButton.addEventListener('click', this._handleBackButton.bind(this));
     this.updatePlayerMessage();
   }
 
   updatePlayerMessage() {
-    this.playerMessageEl.innerHTML = this.player.getCurrentPlayer();
+    this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
   }
 
   wrongSquareMessage() {
@@ -43,6 +46,21 @@ class Board {
     setTimeout(() => {
       this.wrongSquareEl.innerHTML = '';
     }, 2000);
+  }
+
+  _handleBackButton() {
+    console.log(this.board);
+    console.log(this.prevBoard); // Assign the previous board to the current board.
+
+    this.board = this.prevBoard; // Colour square to show prev (now current) board.
+
+    this._colourSquares(); // Switch player back.
+
+
+    this.player.changePlayer();
+    this.updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
+
+    this.backButton.setAttribute('disabled', true);
   }
 
   _handleSquareClick(e) {
@@ -59,6 +77,7 @@ class Board {
     const newBoard = takeTurn.checkNextItem(); // If the click results in a successful move, assign new board state to board.
 
     if (newBoard.successfulMove) {
+      this.prevBoard = this.board;
       this.board = newBoard.newBoard;
 
       this._colourSquares(); // Next player.
@@ -70,6 +89,11 @@ class Board {
     } else {
       // if clicked square is not available, show message.
       this.wrongSquareMessage();
+    } // Enable back button.
+
+
+    if (this.prevBoard.length > 0) {
+      this.backButton.removeAttribute('disabled');
     }
   }
 
@@ -83,9 +107,9 @@ class Board {
         squaresAll[rowIndex].dataset.player = 'b';
       } else if (square === 'w') {
         squaresAll[rowIndex].dataset.player = 'w';
+      } else if (square === 0) {
+        squaresAll[rowIndex].dataset.player = '';
       }
-
-      ;
     });
   }
 
@@ -106,7 +130,6 @@ class Board {
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
-// TODO: add `while` statements for northeast & nortwest to find edge of board.
 class GameLogic {
   constructor(board, position, currentPlayer, nextPlayer) {
     this.boardState = board;
@@ -127,7 +150,7 @@ class GameLogic {
       condition = 0;
       decrement = 8;
 
-      this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'north');
+      this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'n');
     } // South.
 
 
@@ -141,9 +164,13 @@ class GameLogic {
 
     if (remainder != 7) {
       // Northeast.
-      if (this.boardState[this.position - 7] === this.nextPlayer && remainder != 7) {
-        condition = 0;
-        decrement = 7;
+      if (this.boardState[this.position - 7] === this.nextPlayer) {
+        condition = this.position;
+        decrement = 7; // Find most northeasterly square.
+
+        while (condition % 8 != 7 && condition >= 0) {
+          condition -= decrement;
+        }
 
         this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'ne');
       } // East.
@@ -162,7 +189,7 @@ class GameLogic {
         condition = this.position;
         increment = 9; // Find most southeasterly square.
 
-        while (remainder != 7 && condition <= this.boardState.length) {
+        while (condition % 8 != 7 && condition >= 0) {
           condition += increment;
         }
 
@@ -177,7 +204,7 @@ class GameLogic {
         condition = this.position;
         increment = 7; // Find most southwesterly square.
 
-        while (remainder != 0 && condition <= this.boardState.length) {
+        while (condition % 8 != 0) {
           condition += increment;
         }
 
@@ -195,8 +222,12 @@ class GameLogic {
 
 
       if (this.boardState[this.position - 9] === this.nextPlayer) {
-        condition = 0;
-        decrement = 9;
+        condition = this.position;
+        decrement = 9; // Find most northwesterly square.
+
+        while (condition % 8 != 0) {
+          condition -= decrement;
+        }
 
         this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'nw');
       }
@@ -218,9 +249,11 @@ class GameLogic {
       if (board[i] === this.nextPlayer) {
         board[i] = this.currentPlayer;
 
-        if (board[i + increment] === this.currentPlayer) {
+        if (board[i + increment] === 0) {
+          return;
+        } else if (board[i + increment] === this.currentPlayer) {
           this.boardState = board;
-          console.log('from: ' + direction);
+          console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
           this.successfulMove = true;
           return;
         }
@@ -240,9 +273,11 @@ class GameLogic {
       if (board[i] === this.nextPlayer) {
         board[i] = this.currentPlayer;
 
-        if (board[i - decrement] === this.currentPlayer) {
+        if (board[i - decrement] === 0) {
+          return;
+        } else if (board[i - decrement] === this.currentPlayer) {
           this.boardState = board;
-          console.log('from: ' + direction);
+          console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
           this.successfulMove = true;
           return;
         }
