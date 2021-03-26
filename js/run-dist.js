@@ -130,7 +130,6 @@ class Board {
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
-// TODO: add `while` statements for northeast & nortwest to find edge of board.
 class GameLogic {
   constructor(board, position, currentPlayer, nextPlayer) {
     this.boardState = board;
@@ -151,7 +150,7 @@ class GameLogic {
       condition = 0;
       decrement = 8;
 
-      this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'north');
+      this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'n');
     } // South.
 
 
@@ -165,9 +164,13 @@ class GameLogic {
 
     if (remainder != 7) {
       // Northeast.
-      if (this.boardState[this.position - 7] === this.nextPlayer && remainder != 7) {
-        condition = 0;
-        decrement = 7;
+      if (this.boardState[this.position - 7] === this.nextPlayer) {
+        condition = this.position;
+        decrement = 7; // Find most northeasterly square.
+
+        while (condition % 8 != 7 && condition >= 0) {
+          condition -= decrement;
+        }
 
         this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'ne');
       } // East.
@@ -186,7 +189,7 @@ class GameLogic {
         condition = this.position;
         increment = 9; // Find most southeasterly square.
 
-        while (condition % 8 != 7) {
+        while (condition % 8 != 7 && condition >= 0) {
           condition += increment;
         }
 
@@ -219,8 +222,12 @@ class GameLogic {
 
 
       if (this.boardState[this.position - 9] === this.nextPlayer) {
-        condition = 0;
-        decrement = 9;
+        condition = this.position;
+        decrement = 9; // Find most northwesterly square.
+
+        while (condition % 8 != 0) {
+          condition -= decrement;
+        }
 
         this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'nw');
       }
@@ -235,16 +242,18 @@ class GameLogic {
   _evaluationFunctionPositive(board, condition, increment, direction) {
     board[this.position] = this.currentPlayer;
 
-    for (let i = this.position + increment; i <= condition; i += increment) {
+    for (let i = this.position + increment; i < condition; i += increment) {
       // If the next square belongs to currentPlayer, cannot be flipped -> break.
       if (board[i] === this.currentPlayer) break; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
 
       if (board[i] === this.nextPlayer) {
         board[i] = this.currentPlayer;
 
-        if (board[i + increment] === this.currentPlayer) {
+        if (board[i + increment] === 0) {
+          return;
+        } else if (board[i + increment] === this.currentPlayer) {
           this.boardState = board;
-          console.log('direction: ' + direction);
+          console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
           this.successfulMove = true;
           return;
         }
@@ -257,16 +266,18 @@ class GameLogic {
   _evaluationFunctionNegative(board, condition, decrement, direction) {
     board[this.position] = this.currentPlayer;
 
-    for (let i = this.position - decrement; i >= condition; i -= decrement) {
+    for (let i = this.position - decrement; i > condition; i -= decrement) {
       // If the next square belongs to currentPlayer, cannot be flipped -> break.
       if (board[i] === this.currentPlayer) break; // Check next item -> if it belongs to opponent, flip it to currentPlayer.
 
       if (board[i] === this.nextPlayer) {
         board[i] = this.currentPlayer;
 
-        if (board[i - decrement] === this.currentPlayer) {
+        if (board[i - decrement] === 0) {
+          return;
+        } else if (board[i - decrement] === this.currentPlayer) {
           this.boardState = board;
-          console.log('direction: ' + direction);
+          console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
           this.successfulMove = true;
           return;
         }
