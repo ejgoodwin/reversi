@@ -1,10 +1,14 @@
 class GameLogic {
-	constructor(board, position, currentPlayer, nextPlayer) {
+	constructor(board, currentPlayer, nextPlayer) {
 		this.boardState = board;
 		this.currentPlayer = currentPlayer;
 		this.nextPlayer = nextPlayer;
-		this.position = position;
+		this.position = null;
 		this.successfulMove = false;
+	}
+
+	setPosition(position) {
+		this.position = position;
 	}
 
 	checkNextItem() {
@@ -117,6 +121,7 @@ class GameLogic {
 	}
 
 	_evaluationFunctionNegative(board, condition, decrement, direction) {
+		console.log('checking')
 		board[this.position] = this.currentPlayer;
 		for (let i = this.position-decrement; i > condition; i -= decrement) {
 			// If the next square belongs to currentPlayer, cannot be flipped -> break.
