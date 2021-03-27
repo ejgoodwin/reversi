@@ -10,10 +10,19 @@
 	<h1 class="game-title">Reversi</h1>
 
 	<section class="game">
+		<label class="hint-checkbox-label">
+  			<input class="hint-checkbox" type="checkbox">
+  			Show available moves
+  		</label>
 		<div class="board"></div>	
 		<button class="back-btn" disabled>Oops, go back</button>
 		<p class="players-turn">Current player: <span class="current-player"></span></p>
 		<p class="wrong-square"></p>
+	</section>
+	<section class="results">
+		<p>Black: <span class="results-black"></span></p>
+		<p>White: <span class="results-white"></span></p>
+		<p class="results-winner"></p>
 	</section>
 
 	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>

@@ -1,8 +1,10 @@
 import GameLogic from './GameLogic.js';
 import Player from './Player.js';
+import BoardEvaluation from './BoardEvaluation.js';
 
 class Board {
 	constructor() {
+		this.game = document.querySelector('.game');
 		this.board = [
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0,
@@ -19,6 +21,7 @@ class Board {
 		this.player = new Player();
 		this.wrongSquareEl = document.querySelector('.wrong-square');
 		this.playerMessageEl = document.querySelector('.current-player');
+		this.toggleAvailableMoves = document.querySelector('.hint-checkbox');
 	}
 
 	_renderBoard() {
@@ -32,8 +35,10 @@ class Board {
 			square.addEventListener('click', (e) => this._handleSquareClick(e));
 			this.boardEl.appendChild(square);
 		});
-
+		// Add back button event listener
 		this.backButton.addEventListener('click', this._handleBackButton.bind(this));
+		// Add available moves checkbox event listener
+		this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 		this.updatePlayerMessage();
 	}
 
@@ -49,8 +54,6 @@ class Board {
 	}
 
 	_handleBackButton() {
-		console.log(this.board);
-		console.log(this.prevBoard);
 		// Assign the previous board to the current board.
 		this.board = this.prevBoard;
 		// Colour square to show prev (now current) board.
@@ -60,6 +63,17 @@ class Board {
 		this.updatePlayerMessage();
 		// Add `disabled` attribute to only allow one back move.
 		this.backButton.setAttribute('disabled', true);
+		// Remove and reapply available squares.
+		this._removeAvailableSquares();
+		this.checkWinner();
+	}
+
+	_handleCheckbox() {
+		if (this.toggleAvailableMoves.checked) {
+			this.game.classList.add('show-hints');
+		} else {
+			this.game.classList.remove('show-hints');
+		}
 	}
 
 	_handleSquareClick(e) {
@@ -72,7 +86,8 @@ class Board {
 
 		const currentPlayer = this.player.getCurrentPlayer();
 		const nextPlayer = this.player.getNextPlayer();
-		const takeTurn = new GameLogic([...this.board], position, currentPlayer, nextPlayer);
+		const takeTurn = new GameLogic([...this.board], currentPlayer, nextPlayer);
+		takeTurn.setPosition(position);
 		const newBoard = takeTurn.checkNextItem();
 		// If the click results in a successful move, assign new board state to board.
 		if (newBoard.successfulMove) {
@@ -82,6 +97,8 @@ class Board {
 			// Next player.
 			this.player.changePlayer();
 			this.updatePlayerMessage();
+			// Remove available square colours
+			this._removeAvailableSquares();
 			console.log(currentPlayer);
 		} else { // if clicked square is not available, show message.
 			this.wrongSquareMessage();
@@ -91,13 +108,16 @@ class Board {
 		if (this.prevBoard.length > 0) {
 			this.backButton.removeAttribute('disabled');
 		}
+
+		// Check if any winners
+		this.checkWinner();
 	}
 
 	_colourSquares() {
 		// Loop through board array to find the black and white positions.
 		// Set data attribute for the squares should be black or white.
 		//console.log(this.board)
-		const squaresAll = document.querySelectorAll('.board-square')
+		const squaresAll = document.querySelectorAll('.board-square');
 		this.board.forEach((square, rowIndex) => {
 			if (square === 'b') {
 				squaresAll[rowIndex].dataset.player = 'b';
@@ -109,8 +129,48 @@ class Board {
 		});
 	}
 
-	checkWinner() {
+	_colourAvailableSquares(availableSquares) {
+		const squaresAll = document.querySelectorAll('.board-square');
+		availableSquares.forEach((available) => {
+			squaresAll[available].dataset.available = true;
+		});
+	}
 
+	_removeAvailableSquares() {
+		const squaresAll = document.querySelectorAll('.board-square');
+		squaresAll.forEach((square) => {
+			square.dataset.available = false;
+		})
+	}
+
+	checkWinner() {
+		const currentPlayer = this.player.getCurrentPlayer();
+		const nextPlayer = this.player.getNextPlayer();
+		this.evaluate = new BoardEvaluation(currentPlayer, nextPlayer);
+		this.evaluate.setBoard([...this.board]);
+		const availableSquares = this.evaluate.evaluateBoard();
+		this._colourAvailableSquares(availableSquares);
+		// Find winner if no available squares.
+		if (availableSquares.length === 0) {
+			const results = this.evaluate.returnResult();
+			this._displayResults(results);
+		}
+	}
+
+	_displayResults(results) {
+		const winnerEl = document.querySelector('.results-winner');
+		document.querySelector('.results').classList.add('show-results');
+		document.querySelector('.results-black').innerHTML = results['b'];
+		document.querySelector('.results-white').innerHTML = results['w'];
+		if (results['b'] === results['w']) {
+			winnerEl.innerHTML = 'Draw!';
+		} else if (results['b'] > results['w']) {
+			winnerEl.innerHTML = 'Black wins!';
+		} else {
+			winnerEl.innerHTML = 'White wins!';
+		}
+		// Disable back button when there is a winner.
+		this.backButton.setAttribute('disabled', true);
 	}
 
 	init() {
