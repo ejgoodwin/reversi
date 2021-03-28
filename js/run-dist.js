@@ -516,9 +516,9 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 !function() {
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Board_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var _components_Board_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 
-const board = new _Board_js__WEBPACK_IMPORTED_MODULE_0__.default();
+const board = new _components_Board_js__WEBPACK_IMPORTED_MODULE_0__.default();
 board.init();
 }();
 /******/ })()
