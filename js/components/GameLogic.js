@@ -1,6 +1,6 @@
 class GameLogic {
-	constructor(board, currentPlayer, nextPlayer) {
-		this.boardState = board;
+	constructor(currentPlayer, nextPlayer) {
+		this.boardState = [];
 		this.currentPlayer = currentPlayer;
 		this.nextPlayer = nextPlayer;
 		this.position = null;
@@ -11,12 +11,17 @@ class GameLogic {
 		this.position = position;
 	}
 
+	setBoard(board) {
+		this.boardState = board;
+	}
+
 	checkNextItem() {
 		let condition;
 		let decrement;
 		let increment;
 		let calcVar;
 		let remainder = this.position % 8;
+		this.successfulMove = false;
 
 		// North
 		if (this.boardState[this.position - 8] === this.nextPlayer) {

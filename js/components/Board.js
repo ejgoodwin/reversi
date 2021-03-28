@@ -39,14 +39,14 @@ class Board {
 		this.backButton.addEventListener('click', this._handleBackButton.bind(this));
 		// Add available moves checkbox event listener
 		this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
-		this.updatePlayerMessage();
+		this._updatePlayerMessage();
 	}
 
-	updatePlayerMessage() {
+	_updatePlayerMessage() {
 		this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
 	}
 
-	wrongSquareMessage() {
+	_wrongSquareMessage() {
 		this.wrongSquareEl.innerHTML = 'Square unavailable, try again!';
 		setTimeout(() => {
 			this.wrongSquareEl.innerHTML = '';
@@ -60,12 +60,12 @@ class Board {
 		this._colourSquares();
 		// Switch player back.
 		this.player.changePlayer();
-		this.updatePlayerMessage();
+		this._updatePlayerMessage();
 		// Add `disabled` attribute to only allow one back move.
 		this.backButton.setAttribute('disabled', true);
 		// Remove and reapply available squares.
 		this._removeAvailableSquares();
-		this.checkWinner();
+		this._checkWinner();
 	}
 
 	_handleCheckbox() {
@@ -86,8 +86,9 @@ class Board {
 
 		const currentPlayer = this.player.getCurrentPlayer();
 		const nextPlayer = this.player.getNextPlayer();
-		const takeTurn = new GameLogic([...this.board], currentPlayer, nextPlayer);
+		const takeTurn = new GameLogic(currentPlayer, nextPlayer);
 		takeTurn.setPosition(position);
+		takeTurn.setBoard([...this.board]);
 		const newBoard = takeTurn.checkNextItem();
 		// If the click results in a successful move, assign new board state to board.
 		if (newBoard.successfulMove) {
@@ -96,12 +97,12 @@ class Board {
 			this._colourSquares();
 			// Next player.
 			this.player.changePlayer();
-			this.updatePlayerMessage();
+			this._updatePlayerMessage();
 			// Remove available square colours
 			this._removeAvailableSquares();
 			console.log(currentPlayer);
 		} else { // if clicked square is not available, show message.
-			this.wrongSquareMessage();
+			this._wrongSquareMessage();
 		}
 
 		// Enable back button.
@@ -110,7 +111,7 @@ class Board {
 		}
 
 		// Check if any winners
-		this.checkWinner();
+		this._checkWinner();
 	}
 
 	_colourSquares() {
@@ -143,7 +144,7 @@ class Board {
 		})
 	}
 
-	checkWinner() {
+	_checkWinner() {
 		const currentPlayer = this.player.getCurrentPlayer();
 		const nextPlayer = this.player.getNextPlayer();
 		this.evaluate = new BoardEvaluation(currentPlayer, nextPlayer);

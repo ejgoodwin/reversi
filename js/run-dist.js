@@ -41,14 +41,15 @@ class Board {
     this.backButton.addEventListener('click', this._handleBackButton.bind(this)); // Add available moves checkbox event listener
 
     this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
-    this.updatePlayerMessage();
+
+    this._updatePlayerMessage();
   }
 
-  updatePlayerMessage() {
+  _updatePlayerMessage() {
     this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
   }
 
-  wrongSquareMessage() {
+  _wrongSquareMessage() {
     this.wrongSquareEl.innerHTML = 'Square unavailable, try again!';
     setTimeout(() => {
       this.wrongSquareEl.innerHTML = '';
@@ -63,13 +64,15 @@ class Board {
 
 
     this.player.changePlayer();
-    this.updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
+
+    this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
+
 
     this.backButton.setAttribute('disabled', true); // Remove and reapply available squares.
 
     this._removeAvailableSquares();
 
-    this.checkWinner();
+    this._checkWinner();
   }
 
   _handleCheckbox() {
@@ -90,8 +93,9 @@ class Board {
 
     const currentPlayer = this.player.getCurrentPlayer();
     const nextPlayer = this.player.getNextPlayer();
-    const takeTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default([...this.board], currentPlayer, nextPlayer);
+    const takeTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(currentPlayer, nextPlayer);
     takeTurn.setPosition(position);
+    takeTurn.setBoard([...this.board]);
     const newBoard = takeTurn.checkNextItem(); // If the click results in a successful move, assign new board state to board.
 
     if (newBoard.successfulMove) {
@@ -102,14 +106,16 @@ class Board {
 
 
       this.player.changePlayer();
-      this.updatePlayerMessage(); // Remove available square colours
+
+      this._updatePlayerMessage(); // Remove available square colours
+
 
       this._removeAvailableSquares();
 
       console.log(currentPlayer);
     } else {
       // if clicked square is not available, show message.
-      this.wrongSquareMessage();
+      this._wrongSquareMessage();
     } // Enable back button.
 
 
@@ -118,7 +124,7 @@ class Board {
     } // Check if any winners
 
 
-    this.checkWinner();
+    this._checkWinner();
   }
 
   _colourSquares() {
@@ -151,7 +157,7 @@ class Board {
     });
   }
 
-  checkWinner() {
+  _checkWinner() {
     const currentPlayer = this.player.getCurrentPlayer();
     const nextPlayer = this.player.getNextPlayer();
     this.evaluate = new _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__.default(currentPlayer, nextPlayer);
@@ -202,8 +208,8 @@ class Board {
 
 __webpack_require__.r(__webpack_exports__);
 class GameLogic {
-  constructor(board, currentPlayer, nextPlayer) {
-    this.boardState = board;
+  constructor(currentPlayer, nextPlayer) {
+    this.boardState = [];
     this.currentPlayer = currentPlayer;
     this.nextPlayer = nextPlayer;
     this.position = null;
@@ -214,12 +220,17 @@ class GameLogic {
     this.position = position;
   }
 
+  setBoard(board) {
+    this.boardState = board;
+  }
+
   checkNextItem() {
     let condition;
     let decrement;
     let increment;
     let calcVar;
-    let remainder = this.position % 8; // North
+    let remainder = this.position % 8;
+    this.successfulMove = false; // North
 
     if (this.boardState[this.position - 8] === this.nextPlayer) {
       condition = 0;
@@ -413,6 +424,7 @@ class BoardEvaluation {
     this.currentPlayer = currentPlayer;
     this.nextPlayer = nextPlayer;
     this.boardCurrentState = [];
+    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(this.currentPlayer, this.nextPlayer);
   }
 
   setBoard(board) {
@@ -421,35 +433,32 @@ class BoardEvaluation {
 
   evaluateBoard() {
     // Check that there are no more available moves:
-    // Loop through array and call game logic for `0` squares
+    // Loop through array and checkNextItem() for `0` squares.
     const availableSquares = [];
-    console.log('current' + this.currentPlayer);
     this.boardCurrentState.forEach((item, index) => {
       if (item === 0) {
-        let logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default([...this.boardCurrentState], this.currentPlayer, this.nextPlayer);
-        logic.setPosition(index);
-        let nextItem = logic.checkNextItem(); // console.log(nextItem);
+        // Pass the position and fresh copy of board to GameLogic.
+        this.logic.setPosition(index);
+        this.logic.setBoard([...this.boardCurrentState]);
+        let nextItem = this.logic.checkNextItem();
 
         if (nextItem.successfulMove === true) {
-          // There must be other moves available.
-          console.log('successfulMove');
+          // This move is available -> add it to the array.
           availableSquares.push(index);
         }
-      } // No more moves available so decide result.
-      //return this.returnResult();
-
-    }); // -> if successful move does not return for any iteration, there are no moves available.
-    // Loop through array, keep track of `b` and `w`.
-    // Highest wins.
+      }
+    }); // Return an array of available squares (empty if non available).
 
     return availableSquares;
   }
 
   returnResult() {
+    // Store results in an object that will be returned.
     const results = {
       'b': 0,
       'w': 0
-    };
+    }; // Loop through the board items and add 1 to corresponding key/value.
+
     this.boardCurrentState.forEach(item => {
       if (item === 'b') {
         results['b'] += 1;
@@ -507,9 +516,9 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 !function() {
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Board_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var _components_Board_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 
-const board = new _Board_js__WEBPACK_IMPORTED_MODULE_0__.default();
+const board = new _components_Board_js__WEBPACK_IMPORTED_MODULE_0__.default();
 board.init();
 }();
 /******/ })()
