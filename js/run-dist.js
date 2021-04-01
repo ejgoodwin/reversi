@@ -18,12 +18,12 @@ class Board {
     this.game = document.querySelector('.game');
     this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     this.prevBoard = [];
-    this.boardEl = document.querySelector('.board');
-    this.backButton = document.querySelector('.back-btn');
+    this.boardEl = this.game.querySelector('.board');
+    this.backButton = this.game.querySelector('.back-btn');
     this.player = new _Player_js__WEBPACK_IMPORTED_MODULE_1__.default();
-    this.wrongSquareEl = document.querySelector('.wrong-square');
-    this.playerMessageEl = document.querySelector('.current-player');
-    this.toggleAvailableMoves = document.querySelector('.hint-checkbox');
+    this.wrongSquareEl = this.game.querySelector('.wrong-square');
+    this.playerMessageEl = this.game.querySelector('.current-player');
+    this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
   }
 
   _renderBoard() {
@@ -68,7 +68,7 @@ class Board {
     this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
 
 
-    this.backButton.setAttribute('disabled', true); // Remove and reapply available squares.
+    this.backButton.setAttribute('disabled', ''); // Remove and reapply available squares.
 
     this._removeAvailableSquares();
 

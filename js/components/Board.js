@@ -16,12 +16,12 @@ class Board {
 			0,0,0,0,0,0,0,0
 		];
 		this.prevBoard = [];
-		this.boardEl = document.querySelector('.board');
-		this.backButton = document.querySelector('.back-btn');
+		this.boardEl = this.game.querySelector('.board');
+		this.backButton = this.game.querySelector('.back-btn');
 		this.player = new Player();
-		this.wrongSquareEl = document.querySelector('.wrong-square');
-		this.playerMessageEl = document.querySelector('.current-player');
-		this.toggleAvailableMoves = document.querySelector('.hint-checkbox');
+		this.wrongSquareEl = this.game.querySelector('.wrong-square');
+		this.playerMessageEl = this.game.querySelector('.current-player');
+		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
 	}
 
 	_renderBoard() {
@@ -62,7 +62,7 @@ class Board {
 		this.player.changePlayer();
 		this._updatePlayerMessage();
 		// Add `disabled` attribute to only allow one back move.
-		this.backButton.setAttribute('disabled', true);
+		this.backButton.setAttribute('disabled', '');
 		// Remove and reapply available squares.
 		this._removeAvailableSquares();
 		this._checkWinner();
