@@ -9,6 +9,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var _Player_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var _SearchAI_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+
 
 
 
@@ -24,6 +26,7 @@ class Board {
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
+    this.minimax = new _SearchAI_js__WEBPACK_IMPORTED_MODULE_3__.default();
   }
 
   _renderBoard() {
@@ -91,12 +94,14 @@ class Board {
       return;
     }
 
-    const currentPlayer = this.player.getCurrentPlayer();
-    const nextPlayer = this.player.getNextPlayer();
+    let currentPlayer = this.player.getCurrentPlayer();
+    let nextPlayer = this.player.getNextPlayer();
     const takeTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(currentPlayer, nextPlayer);
     takeTurn.setPosition(position);
     takeTurn.setBoard([...this.board]);
-    const newBoard = takeTurn.checkNextItem(); // If the click results in a successful move, assign new board state to board.
+    console.time('checkNext');
+    const newBoard = takeTurn.checkNextItem();
+    console.timeEnd('checkNext'); // If the click results in a successful move, assign new board state to board.
 
     if (newBoard.successfulMove) {
       this.prevBoard = this.board;
@@ -112,7 +117,35 @@ class Board {
 
       this._removeAvailableSquares();
 
-      console.log(currentPlayer);
+      console.log(currentPlayer); // Use minimax for next player
+
+      currentPlayer = this.player.getCurrentPlayer();
+      nextPlayer = this.player.getNextPlayer();
+      this.minimax.setBoard([...this.board]);
+      this.minimax.setPlayers(currentPlayer, nextPlayer);
+      const aiMove = this.minimax.runSearch();
+      console.log(aiMove); // Apply that move
+
+      const aiTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(currentPlayer, nextPlayer);
+      aiTurn.setPosition(aiMove);
+      aiTurn.setBoard([...this.board]);
+      const newAiBoard = aiTurn.checkNextItem();
+      console.log(aiTurn);
+
+      if (newAiBoard.successfulMove) {
+        this.prevBoard = this.board;
+        this.board = newAiBoard.newBoard;
+
+        this._colourSquares(); // Next player.
+
+
+        this.player.changePlayer();
+
+        this._updatePlayerMessage(); // Remove available square colours
+
+
+        this._removeAvailableSquares();
+      }
     } else {
       // if clicked square is not available, show message.
       this._wrongSquareMessage();
@@ -338,8 +371,8 @@ class GameLogic {
         if (board[i + increment] === 0) {
           return;
         } else if (board[i + increment] === this.currentPlayer) {
-          this.boardState = board;
-          console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
+          this.boardState = board; // console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
+
           this.successfulMove = true;
           return;
         }
@@ -350,7 +383,7 @@ class GameLogic {
   }
 
   _evaluationFunctionNegative(board, condition, decrement, direction) {
-    console.log('checking');
+    // console.log('checking')
     board[this.position] = this.currentPlayer;
 
     for (let i = this.position - decrement; i > condition; i -= decrement) {
@@ -363,8 +396,8 @@ class GameLogic {
         if (board[i - decrement] === 0) {
           return;
         } else if (board[i - decrement] === this.currentPlayer) {
-          this.boardState = board;
-          console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
+          this.boardState = board; // console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
+
           this.successfulMove = true;
           return;
         }
@@ -472,6 +505,141 @@ class BoardEvaluation {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (BoardEvaluation);
+
+/***/ }),
+/* 5 */
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+
+
+class SearchAI {
+  constructor() {
+    this.board = null;
+    this.currentPlayer = null;
+    this.nextPlayer = null;
+    this.logic = null;
+  }
+
+  setBoard(board) {
+    this.board = board;
+  }
+
+  setPlayers(currentPlayer, nextPlayer) {
+    this.currentPlayer = currentPlayer;
+    this.nextPlayer = nextPlayer;
+    this.createLogicInstance();
+  }
+
+  createLogicInstance() {
+    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(this.currentPlayer, this.nextPlayer);
+  }
+
+  runSearch() {
+    // console.log(this.currentPlayer);
+    // this.minimax(this.board, this.currentPlayer, 3);
+    const selectedMove = this.minimax(this.board, this.currentPlayer, 4).index;
+    return selectedMove;
+  }
+
+  minimax(testBoard, player, depth) {
+    // Find available squares.
+    // console.log(testBoard);
+    const availSquares = this.evaluateBoard(testBoard); // Check who's winning on current board state.
+
+    let black = 0;
+    let white = 0;
+
+    for (let i = 0; i < testBoard.length; i++) {
+      if (testBoard[i] === 'b') {
+        black++;
+      }
+
+      if (testBoard[i] === 'w') {
+        white++;
+      }
+    }
+
+    if (depth === 0 && black > white) {
+      return {
+        score: -100
+      };
+    } else if (depth === 0 && black < white) {
+      return {
+        score: 100
+      };
+    } // Start min/max
+
+
+    if (player === 'w') {
+      let bestScore = {};
+      bestScore.score = -1000; // loop through available squares.
+
+      for (let i = 0; i < availSquares.length; i++) {
+        // console.log(availSquares)
+        // console.log(depth);
+        // assign player to the current square.
+        testBoard[availSquares[i]] = player; // store result of minimax -> returns 'bestScore', i.e. {score, index}
+
+        let result = this.minimax(testBoard, 'b', depth - 1); // Find the MAXIMUM score
+
+        if (result.score > bestScore.score) {
+          bestScore.score = result.score - depth;
+          bestScore.index = availSquares[i];
+        } // Reset current square to null 
+        // -> next iteration needs to see state of board prior to that potential move
+
+
+        testBoard[availSquares[i]] = 0;
+      }
+
+      return bestScore;
+    } else {
+      let bestScore = {};
+      bestScore.score = 1000;
+
+      for (let i = 0; i < availSquares.length; i++) {
+        testBoard[availSquares[i]] = player;
+        let result = this.minimax(testBoard, 'b', depth - 1); // Find the MINIMUM score
+
+        if (result.score < bestScore.score) {
+          bestScore.score = result.score - depth;
+          bestScore.index = availSquares[i];
+        }
+
+        testBoard[availSquares[i]] = 0;
+      }
+
+      return bestScore;
+    }
+  }
+
+  evaluateBoard(board) {
+    // Check that there are no more available moves:
+    // Loop through array and checkNextItem() for `0` squares.
+    const availableSquares = []; // console.log(board);
+
+    board.forEach((item, index) => {
+      if (item === 0) {
+        // Pass the position and fresh copy of board to GameLogic.
+        this.logic.setPosition(index);
+        this.logic.setBoard([...board]);
+        let nextItem = this.logic.checkNextItem();
+
+        if (nextItem.successfulMove === true) {
+          // This move is available -> add it to the array.
+          availableSquares.push(index);
+        }
+      }
+    }); // Return an array of available squares (empty if non available).
+
+    return availableSquares;
+  }
+
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (SearchAI);
 
 /***/ })
 /******/ 	]);
