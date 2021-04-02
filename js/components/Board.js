@@ -1,4 +1,5 @@
 import GameLogic from './GameLogic.js';
+import TestLogic from './TestLogic.js';
 import Player from './Player.js';
 import BoardEvaluation from './BoardEvaluation.js';
 
@@ -86,10 +87,21 @@ class Board {
 
 		const currentPlayer = this.player.getCurrentPlayer();
 		const nextPlayer = this.player.getNextPlayer();
-		const takeTurn = new GameLogic(currentPlayer, nextPlayer);
-		takeTurn.setPosition(position);
-		takeTurn.setBoard([...this.board]);
-		const newBoard = takeTurn.checkNextItem();
+		// const takeTurn = new GameLogic(currentPlayer, nextPlayer);
+		// takeTurn.setPosition(position);
+		// takeTurn.setBoard([...this.board]);
+		// console.time('checkNextItem');
+		// const newBoard = takeTurn.checkNextItem();
+		// console.timeEnd('checkNextItem');
+
+		const testLogic = new TestLogic(currentPlayer, nextPlayer);
+		testLogic.setPosition(position);
+		testLogic.setBoard([...this.board]);
+		console.time('createNodes');
+		const newBoard = testLogic.createNodes();
+		console.log(newBoard);
+		console.timeEnd('createNodes');
+
 		// If the click results in a successful move, assign new board state to board.
 		if (newBoard.successfulMove) {
 			this.prevBoard = this.board;
