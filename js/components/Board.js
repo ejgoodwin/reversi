@@ -5,36 +5,52 @@ import BoardEvaluation from './BoardEvaluation.js';
 class Board {
 	constructor() {
 		this.game = document.querySelector('.game');
-		this.board = [
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,'b','w',0,0,0,
-			0,0,0,'w','b',0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0
-		];
+		// this.board = [
+		// 	0,0,0,0,0,0,0,0,
+		// 	0,0,0,0,0,0,0,0,
+		// 	0,0,0,0,0,0,0,0,
+		// 	0,0,0,'b','w',0,0,0,
+		// 	0,0,0,'w','b',0,0,0,
+		// 	0,0,0,0,0,0,0,0,
+		// 	0,0,0,0,0,0,0,0,
+		// 	0,0,0,0,0,0,0,0
+		// ];
+		this.board = {
+			black: [{row:3, col:3}, {row:4, col:4}],
+			white: [{row:3, col:4}, {row:4, col:3}]
+		}
 		this.prevBoard = [];
 		this.boardEl = this.game.querySelector('.board');
 		this.backButton = this.game.querySelector('.back-btn');
-		this.player = new Player();
 		this.wrongSquareEl = this.game.querySelector('.wrong-square');
 		this.playerMessageEl = this.game.querySelector('.current-player');
 		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
+
+		this.player = new Player();
+		this.currentPlayer = this.player.getCurrentPlayer();
+		this.nextPlayer = this.player.getNextPlayer();
+		
+		this.evaluate = new BoardEvaluation();
+		this.evaluate.setBoard(this.board);
+		this.evaluate.setPlayers(this.currentPlayer, this.nextPlayer);
+		this.evaluate.evaluateBoard();
 	}
 
 	_renderBoard() {
-		this.board.forEach((row, index) => {
-			//Create square button.
-			const square = document.createElement('button');
-			// Add classes and data attributes.
-			square.classList.add('board-square');
-			square.dataset.position = index;
-			// Add event listener.
-			square.addEventListener('click', (e) => this._handleSquareClick(e));
-			this.boardEl.appendChild(square);
-		});
+		for (let row = 0; row < 8; row++) {
+			for(let col = 0; col < 8; col++) {
+				//Create square button.
+				const square = document.createElement('button');
+				// Add classes and data attributes.
+				square.classList.add('board-square');
+				square.dataset.row = row;
+				square.dataset.col = col;
+				// Add event listener.
+				square.addEventListener('click', (e) => this._handleSquareClick(e));
+				this.boardEl.appendChild(square);
+			}
+			
+		}
 		// Add back button event listener
 		this.backButton.addEventListener('click', this._handleBackButton.bind(this));
 		// Add available moves checkbox event listener
@@ -78,14 +94,20 @@ class Board {
 
 	_handleSquareClick(e) {
 		// Get clicked square's array index.
-		const position = parseInt(e.target.dataset.position);
+		const positionRow = parseInt(e.target.dataset.row);
+		const positionCol = parseInt(e.target.dataset.col);
+		const position = {row:positionRow, col:positionCol};
+		// console.log(position);
 		// Check clicked square is available.
-		if (this.board[position] != 0) {
+		const availBlack = this.board.black.find(item => item = position);
+		const availWhite = this.board.white.find(item => item = position);
+		if (availBlack || availWhite) { // if this combination exists in board -> this square is taken.
 			return;
 		}
-
+		// Get player info.
 		const currentPlayer = this.player.getCurrentPlayer();
 		const nextPlayer = this.player.getNextPlayer();
+		// Take a turn.
 		const takeTurn = new GameLogic(currentPlayer, nextPlayer);
 		takeTurn.setPosition(position);
 		takeTurn.setBoard([...this.board]);
@@ -100,7 +122,7 @@ class Board {
 			this._updatePlayerMessage();
 			// Remove available square colours
 			this._removeAvailableSquares();
-			console.log(currentPlayer);
+			// console.log(currentPlayer);
 		} else { // if clicked square is not available, show message.
 			this._wrongSquareMessage();
 		}
@@ -115,18 +137,14 @@ class Board {
 	}
 
 	_colourSquares() {
-		// Loop through board array to find the black and white positions.
-		// Set data attribute for the squares should be black or white.
-		//console.log(this.board)
-		const squaresAll = document.querySelectorAll('.board-square');
-		this.board.forEach((square, rowIndex) => {
-			if (square === 'b') {
-				squaresAll[rowIndex].dataset.player = 'b';
-			} else if(square === 'w') {
-				squaresAll[rowIndex].dataset.player = 'w';
-			} else if (square === 0) {
-				squaresAll[rowIndex].dataset.player = '';
-			}
+		// Find squares with corresponding row/col data attributes.
+		this.board.white.forEach(whiteSquare => {
+			// console.log(whiteSquare);
+			this.game.querySelector(`[data-row="${whiteSquare.row}"][data-col="${whiteSquare.col}"]`).dataset.player = 'w';
+		});
+		this.board.black.forEach(blackSquare => {
+			// console.log(blackSquare);
+			this.game.querySelector(`[data-row="${blackSquare.row}"][data-col="${blackSquare.col}"]`).dataset.player = 'b';
 		});
 	}
 

@@ -15,28 +15,63 @@ __webpack_require__.r(__webpack_exports__);
 
 class Board {
   constructor() {
-    this.game = document.querySelector('.game');
-    this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.game = document.querySelector('.game'); // this.board = [
+    // 	0,0,0,0,0,0,0,0,
+    // 	0,0,0,0,0,0,0,0,
+    // 	0,0,0,0,0,0,0,0,
+    // 	0,0,0,'b','w',0,0,0,
+    // 	0,0,0,'w','b',0,0,0,
+    // 	0,0,0,0,0,0,0,0,
+    // 	0,0,0,0,0,0,0,0,
+    // 	0,0,0,0,0,0,0,0
+    // ];
+
+    this.board = {
+      black: [{
+        row: 3,
+        col: 3
+      }, {
+        row: 4,
+        col: 4
+      }],
+      white: [{
+        row: 3,
+        col: 4
+      }, {
+        row: 4,
+        col: 3
+      }]
+    };
     this.prevBoard = [];
     this.boardEl = this.game.querySelector('.board');
     this.backButton = this.game.querySelector('.back-btn');
-    this.player = new _Player_js__WEBPACK_IMPORTED_MODULE_1__.default();
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
+    this.player = new _Player_js__WEBPACK_IMPORTED_MODULE_1__.default();
+    this.currentPlayer = this.player.getCurrentPlayer();
+    this.nextPlayer = this.player.getNextPlayer();
+    this.evaluate = new _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__.default();
+    this.evaluate.setBoard(this.board);
+    this.evaluate.setPlayers(this.currentPlayer, this.nextPlayer);
+    this.evaluate.evaluateBoard();
   }
 
   _renderBoard() {
-    this.board.forEach((row, index) => {
-      //Create square button.
-      const square = document.createElement('button'); // Add classes and data attributes.
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        //Create square button.
+        const square = document.createElement('button'); // Add classes and data attributes.
 
-      square.classList.add('board-square');
-      square.dataset.position = index; // Add event listener.
+        square.classList.add('board-square');
+        square.dataset.row = row;
+        square.dataset.col = col; // Add event listener.
 
-      square.addEventListener('click', e => this._handleSquareClick(e));
-      this.boardEl.appendChild(square);
-    }); // Add back button event listener
+        square.addEventListener('click', e => this._handleSquareClick(e));
+        this.boardEl.appendChild(square);
+      }
+    } // Add back button event listener
+
 
     this.backButton.addEventListener('click', this._handleBackButton.bind(this)); // Add available moves checkbox event listener
 
@@ -85,14 +120,26 @@ class Board {
 
   _handleSquareClick(e) {
     // Get clicked square's array index.
-    const position = parseInt(e.target.dataset.position); // Check clicked square is available.
+    const positionRow = parseInt(e.target.dataset.row);
+    const positionCol = parseInt(e.target.dataset.col);
+    const position = {
+      row: positionRow,
+      col: positionCol
+    }; // console.log(position);
+    // Check clicked square is available.
 
-    if (this.board[position] != 0) {
+    const availBlack = this.board.black.find(item => item = position);
+    const availWhite = this.board.white.find(item => item = position);
+
+    if (availBlack || availWhite) {
+      // if this combination exists in board -> this square is taken.
       return;
-    }
+    } // Get player info.
+
 
     const currentPlayer = this.player.getCurrentPlayer();
-    const nextPlayer = this.player.getNextPlayer();
+    const nextPlayer = this.player.getNextPlayer(); // Take a turn.
+
     const takeTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(currentPlayer, nextPlayer);
     takeTurn.setPosition(position);
     takeTurn.setBoard([...this.board]);
@@ -110,9 +157,8 @@ class Board {
       this._updatePlayerMessage(); // Remove available square colours
 
 
-      this._removeAvailableSquares();
+      this._removeAvailableSquares(); // console.log(currentPlayer);
 
-      console.log(currentPlayer);
     } else {
       // if clicked square is not available, show message.
       this._wrongSquareMessage();
@@ -128,18 +174,14 @@ class Board {
   }
 
   _colourSquares() {
-    // Loop through board array to find the black and white positions.
-    // Set data attribute for the squares should be black or white.
-    //console.log(this.board)
-    const squaresAll = document.querySelectorAll('.board-square');
-    this.board.forEach((square, rowIndex) => {
-      if (square === 'b') {
-        squaresAll[rowIndex].dataset.player = 'b';
-      } else if (square === 'w') {
-        squaresAll[rowIndex].dataset.player = 'w';
-      } else if (square === 0) {
-        squaresAll[rowIndex].dataset.player = '';
-      }
+    // Find squares with corresponding row/col data attributes.
+    this.board.white.forEach(whiteSquare => {
+      // console.log(whiteSquare);
+      this.game.querySelector(`[data-row="${whiteSquare.row}"][data-col="${whiteSquare.col}"]`).dataset.player = 'w';
+    });
+    this.board.black.forEach(blackSquare => {
+      // console.log(blackSquare);
+      this.game.querySelector(`[data-row="${blackSquare.row}"][data-col="${blackSquare.col}"]`).dataset.player = 'b';
     });
   }
 
@@ -416,37 +458,46 @@ class Player {
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _TestLogic_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
 
 
 class BoardEvaluation {
-  constructor(currentPlayer, nextPlayer) {
-    this.currentPlayer = currentPlayer;
-    this.nextPlayer = nextPlayer;
+  constructor() {
+    this.currentPlayer = null;
+    this.nextPlayer = null;
     this.boardCurrentState = [];
-    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(this.currentPlayer, this.nextPlayer);
+    this.logic = new _TestLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(this.currentPlayer, this.nextPlayer);
   }
 
   setBoard(board) {
     this.boardCurrentState = board;
   }
 
+  setPlayers(currentPlayer, nextPlayer) {
+    this.currentPlayer = currentPlayer;
+    this.nextPlayer = nextPlayer;
+  }
+
   evaluateBoard() {
     // Check that there are no more available moves:
     // Loop through array and checkNextItem() for `0` squares.
-    const availableSquares = [];
-    this.boardCurrentState.forEach((item, index) => {
-      if (item === 0) {
-        // Pass the position and fresh copy of board to GameLogic.
-        this.logic.setPosition(index);
-        this.logic.setBoard([...this.boardCurrentState]);
-        let nextItem = this.logic.checkNextItem();
+    const availableSquares = []; // this.boardCurrentState.forEach((item, index) => {
+    // 	if (item === 0) {
+    // 		// Pass the position and fresh copy of board to GameLogic.
+    // 		this.logic.setPosition(index);
+    // 		this.logic.setBoard([...this.boardCurrentState]);
+    // 		let nextItem = this.logic.checkNextItem();
+    // 		if (nextItem.successfulMove === true) {
+    // 			// This move is available -> add it to the array.
+    // 			availableSquares.push(index);
+    // 		}
+    // 	}
+    // });
 
-        if (nextItem.successfulMove === true) {
-          // This move is available -> add it to the array.
-          availableSquares.push(index);
-        }
-      }
+    this.logic.setBoard(this.boardCurrentState);
+    this.logic.setPlayers(this.currentPlayer, this.nextPlayer);
+    this.boardCurrentState.black.forEach(blackSquare => {
+      this.logic.checkNextItems(blackSquare); // console.log(blackSquare);
     }); // Return an array of available squares (empty if non available).
 
     return availableSquares;
@@ -472,6 +523,45 @@ class BoardEvaluation {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (BoardEvaluation);
+
+/***/ }),
+/* 5 */
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+class TestLogic {
+  constructor() {
+    this.currentPlayer = null;
+    this.nextPlayer = null;
+    this.board = null;
+  }
+
+  setPlayers(currentPlayer, nextPlayer) {
+    this.currentPlayer = currentPlayer;
+    this.nextPlayer = nextPlayer;
+  }
+
+  setBoard(board) {
+    this.board = board;
+  }
+
+  checkNextItems(currentSquare) {
+    // North
+    // console.log(this.board);
+    // console.log(this.currentPlayer);
+    let directionPoss = true; // currentSquare.row -= 1;
+
+    directionPoss = this.board.white.find(item => currentSquare);
+    console.log(directionPoss); // do {
+    // 	console.log(currentSquare);
+    // 	currentSquare.row -= 1;
+    // 	directionPoss = this.board.white.find(item => currentSquare);
+    // } while (directionPoss);
+  }
+
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (TestLogic);
 
 /***/ })
 /******/ 	]);
