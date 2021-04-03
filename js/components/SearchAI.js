@@ -25,7 +25,7 @@ class SearchAI {
 	runSearch() {
 		// console.log(this.currentPlayer);
 		// this.minimax(this.board, this.currentPlayer, 3);
-		const selectedMove = this.minimax(this.board, this.currentPlayer, 4).index;
+		const selectedMove = this.minimax(this.board, this.currentPlayer, 5).index;
 		return selectedMove;
 	}
 
@@ -43,6 +43,19 @@ class SearchAI {
 			if (testBoard[i] === 'w') {
 				white++;
 			}
+		}
+		// Added last minute
+		// TODO: change this to an array giving weights to squares
+		if (testBoard[0] === 'w' ||
+			testBoard[7] === 'w' ||
+			testBoard[56] === 'w' ||
+			testBoard[63] === 'w') {
+			white += 50;
+		} else if (testBoard[0] === 'b' ||
+			testBoard[7] === 'b' ||
+			testBoard[56] === 'b' ||
+			testBoard[63] === 'b') {
+			black += 50; 
 		}
 		if (depth === 0 && black > white) {
 			return {score:-100};
@@ -63,7 +76,7 @@ class SearchAI {
 				// store result of minimax -> returns 'bestScore', i.e. {score, index}
 				let result = this.minimax(testBoard, 'b', depth-1);
 				// Find the MAXIMUM score
-				if (result.score > bestScore.score) {
+				if (result.score > bestScore.score) {					
 					bestScore.score = result.score - depth;
 					bestScore.index = availSquares[i];
 				}
@@ -77,7 +90,7 @@ class SearchAI {
 			bestScore.score = 1000;
 			for (let i = 0; i < availSquares.length; i++) {
 				testBoard[availSquares[i]] = player;
-				let result = this.minimax(testBoard, 'b', depth-1);
+				let result = this.minimax(testBoard, 'w', depth-1);
 				// Find the MINIMUM score
 				if (result.score < bestScore.score) {
 					bestScore.score = result.score - depth;
@@ -85,6 +98,7 @@ class SearchAI {
 				}
 				testBoard[availSquares[i]] = 0;
 			}
+			// console.log(bestScore);
 			return bestScore;
 		}
 	}
