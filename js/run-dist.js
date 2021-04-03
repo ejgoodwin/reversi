@@ -520,6 +520,7 @@ class SearchAI {
     this.currentPlayer = null;
     this.nextPlayer = null;
     this.logic = null;
+    this.weightedBoard = [99, -8, 8, 6, 6, 8, -8, 99, -8, -24, -4, -3, -3, -4, -24, -8, 8, -4, 7, 4, 4, 7, -4, 8, 6, 0, 0, 0, 0, 0, 0, 6, 6, 0, 0, 0, 0, 0, 0, 6, 8, -4, 7, 4, 4, 7, -4, 8, -8, -24, -4, -3, -3, -4, -24, -8, 99, -8, 8, 6, 6, 8, -8, 99];
   }
 
   setBoard(board) {
@@ -537,45 +538,18 @@ class SearchAI {
   }
 
   runSearch() {
-    // console.log(this.currentPlayer);
-    // this.minimax(this.board, this.currentPlayer, 3);
-    const selectedMove = this.minimax(this.board, this.currentPlayer, 5).index;
+    const selectedMove = this.minimax(this.board, this.currentPlayer, 4).index;
     return selectedMove;
   }
 
   minimax(testBoard, player, depth) {
     // Find available squares.
-    // console.log(testBoard);
-    const availSquares = this.evaluateBoard(testBoard); // Check who's winning on current board state.
+    const availSquares = this.evaluateBoard(testBoard); // If end of depth, see who has the best score.
 
-    let black = 0;
-    let white = 0;
-
-    for (let i = 0; i < testBoard.length; i++) {
-      if (testBoard[i] === 'b') {
-        black++;
-      }
-
-      if (testBoard[i] === 'w') {
-        white++;
-      }
-    } // Added last minute
-    // TODO: change this to an array giving weights to squares
-
-
-    if (testBoard[0] === 'w' || testBoard[7] === 'w' || testBoard[56] === 'w' || testBoard[63] === 'w') {
-      white += 50;
-    } else if (testBoard[0] === 'b' || testBoard[7] === 'b' || testBoard[56] === 'b' || testBoard[63] === 'b') {
-      black += 50;
-    }
-
-    if (depth === 0 && black > white) {
+    if (depth === 0 || availSquares.length < 1) {
+      const score = this.boardValue(player);
       return {
-        score: -100
-      };
-    } else if (depth === 0 && black < white) {
-      return {
-        score: 100
+        score: score
       };
     } // Start min/max
 
@@ -585,8 +559,6 @@ class SearchAI {
       bestScore.score = -1000; // loop through available squares.
 
       for (let i = 0; i < availSquares.length; i++) {
-        // console.log(availSquares)
-        // console.log(depth);
         // assign player to the current square.
         testBoard[availSquares[i]] = player; // store result of minimax -> returns 'bestScore', i.e. {score, index}
 
@@ -617,11 +589,24 @@ class SearchAI {
         }
 
         testBoard[availSquares[i]] = 0;
-      } // console.log(bestScore);
-
+      }
 
       return bestScore;
     }
+  }
+
+  boardValue(player) {
+    let score = 0;
+    this.weightedBoard.forEach((weight, index) => {
+      if (this.board[index] === player) {
+        if (player === 'w') {
+          score += weight;
+        } else {
+          score -= weight;
+        }
+      }
+    });
+    return score;
   }
 
   evaluateBoard(board) {
