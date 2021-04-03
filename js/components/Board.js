@@ -105,32 +105,6 @@ class Board {
 			// Remove available square colours
 			this._removeAvailableSquares();
 			console.log(currentPlayer);
-
-
-			// // Use minimax for next player
-			// currentPlayer = this.player.getCurrentPlayer();
-			// nextPlayer = this.player.getNextPlayer();
-			// this.minimax.setBoard([...this.board]);
-			// this.minimax.setPlayers(currentPlayer, nextPlayer);
-			// const aiMove = this.minimax.runSearch();
-			// console.log(aiMove);
-			// // Apply that move
-			// const aiTurn = new GameLogic(currentPlayer, nextPlayer);
-			// aiTurn.setPosition(aiMove);
-			// aiTurn.setBoard([...this.board]);
-			// const newAiBoard = aiTurn.checkNextItem();
-			// console.log(aiTurn);
-			// if (newAiBoard.successfulMove) {
-			// 	this.prevBoard = this.board;
-			// 	this.board = newAiBoard.newBoard;
-			// 	this._colourSquares();
-
-			// 	// Next player.
-			// 	this.player.changePlayer();
-			// 	this._updatePlayerMessage();
-			// 	// Remove available square colours
-			// 	this._removeAvailableSquares();
-			// }
 		} else { // if clicked square is not available, show message.
 			this._wrongSquareMessage();
 			return;
