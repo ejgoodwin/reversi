@@ -1,18 +1,24 @@
 import GameLogic from './GameLogic.js';
 
 class BoardEvaluation {
-	constructor(currentPlayer, nextPlayer) {
-		this.currentPlayer = currentPlayer;
-		this.nextPlayer = nextPlayer;
+	constructor() {
+		this.currentPlayer = null;
+		this.nextPlayer = null;
 		this.boardCurrentState = [];
-		this.logic = new GameLogic(this.currentPlayer, this.nextPlayer);
+		this.logic = new GameLogic();
 	}
 
 	setBoard(board) {
 		this.boardCurrentState = board;
 	}
 
+	setPlayers(currentPlayer, nextPlayer) {
+		this.currentPlayer = currentPlayer;
+		this.nextPlayer = nextPlayer;
+	}
+
 	evaluateBoard() {
+		this.logic.setPlayers(this.currentPlayer, this.nextPlayer);
 		// Check that there are no more available moves:
 		// Loop through array and checkNextItem() for `0` squares.
 		const availableSquares = [];

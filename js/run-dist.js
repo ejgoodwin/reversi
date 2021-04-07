@@ -7,7 +7,7 @@
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
-/* harmony import */ var _Player_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _GameConfig_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
 /* harmony import */ var _SearchAI_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
 
@@ -18,15 +18,17 @@ __webpack_require__.r(__webpack_exports__);
 class Board {
   constructor() {
     this.game = document.querySelector('.game');
-    this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    this.prevBoard = [];
     this.boardEl = this.game.querySelector('.board');
     this.backButton = this.game.querySelector('.back-btn');
-    this.player = new _Player_js__WEBPACK_IMPORTED_MODULE_1__.default();
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
+    this.prevBoard = [];
+    this.gameConfig = new _GameConfig_js__WEBPACK_IMPORTED_MODULE_1__.default();
+    this.board = this.gameConfig.getBoard();
     this.minimax = new _SearchAI_js__WEBPACK_IMPORTED_MODULE_3__.default();
+    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default();
+    this.evaluate = new _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__.default();
   }
 
   _renderBoard() {
@@ -49,7 +51,7 @@ class Board {
   }
 
   _updatePlayerMessage() {
-    this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
+    this.playerMessageEl.dataset.player = this.gameConfig.getCurrentPlayer();
   }
 
   _wrongSquareMessage() {
@@ -66,7 +68,7 @@ class Board {
     this._colourSquares(); // Switch player back.
 
 
-    this.player.changePlayer();
+    this.gameConfig.changePlayer();
 
     this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
 
@@ -92,16 +94,31 @@ class Board {
 
     if (this.board[position] != 0) {
       return;
+    } // Make a move.
+
+
+    this._makeMove(position, true); // Enable back button.
+
+
+    if (this.prevBoard.length > 0) {
+      this.backButton.removeAttribute('disabled');
+    }
+  }
+
+  _makeMove(position, humanPlayer) {
+    let currentPlayer = this.gameConfig.getCurrentPlayer();
+    let nextPlayer = this.gameConfig.getNextPlayer(); // Run minimax to get position if it is the computer player's turn.
+
+    if (!humanPlayer) {
+      this.minimax.setBoard([...this.board]);
+      this.minimax.setPlayers(currentPlayer, nextPlayer);
+      position = this.minimax.runSearch();
     }
 
-    let currentPlayer = this.player.getCurrentPlayer();
-    let nextPlayer = this.player.getNextPlayer();
-    const takeTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(currentPlayer, nextPlayer);
-    takeTurn.setPosition(position);
-    takeTurn.setBoard([...this.board]);
-    console.time('checkNext');
-    const newBoard = takeTurn.checkNextItem();
-    console.timeEnd('checkNext'); // If the click results in a successful move, assign new board state to board.
+    this.logic.setPlayers(currentPlayer, nextPlayer);
+    this.logic.setPosition(position);
+    this.logic.setBoard([...this.board]);
+    const newBoard = this.logic.checkNextItem(); // If the click results in a successful move, assign new board state to board.
 
     if (newBoard.successfulMove) {
       this.prevBoard = this.board;
@@ -110,73 +127,35 @@ class Board {
       this._colourSquares(); // Next player.
 
 
-      this.player.changePlayer();
+      this.gameConfig.changePlayer();
 
       this._updatePlayerMessage(); // Remove available square colours
 
 
       this._removeAvailableSquares();
-
-      console.log(currentPlayer);
     } else {
       // if clicked square is not available, show message.
       this._wrongSquareMessage();
 
       return;
-    } // Enable back button.
-
-
-    if (this.prevBoard.length > 0) {
-      this.backButton.removeAttribute('disabled');
-    } // Check if any winners
-
-
-    this._checkWinner(); // Run AI Search
-
-
-    setTimeout(() => {
-      this._computerMove();
-    }, 500);
-  }
-
-  _computerMove() {
-    // Use minimax for next player
-    const currentPlayer = this.player.getCurrentPlayer();
-    const nextPlayer = this.player.getNextPlayer();
-    this.minimax.setBoard([...this.board]);
-    this.minimax.setPlayers(currentPlayer, nextPlayer);
-    const aiMove = this.minimax.runSearch();
-    console.log(aiMove); // Apply that move
-
-    const aiTurn = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(currentPlayer, nextPlayer);
-    aiTurn.setPosition(aiMove);
-    aiTurn.setBoard([...this.board]);
-    const newAiBoard = aiTurn.checkNextItem();
-    console.log(aiTurn);
-
-    if (newAiBoard.successfulMove) {
-      this.prevBoard = this.board;
-      this.board = newAiBoard.newBoard;
-
-      this._colourSquares(); // Next player.
-
-
-      this.player.changePlayer();
-
-      this._updatePlayerMessage(); // Remove available square colours
-
-
-      this._removeAvailableSquares();
     } // Check if any winners
 
 
     this._checkWinner();
+
+    if (humanPlayer) {
+      // Make a move for computer player
+      setTimeout(() => {
+        this._makeMove(null, false);
+      }, 500); // Check if any winners after computer's move.
+
+      this._checkWinner();
+    }
   }
 
   _colourSquares() {
     // Loop through board array to find the black and white positions.
     // Set data attribute for the squares should be black or white.
-    //console.log(this.board)
     const squaresAll = document.querySelectorAll('.board-square');
     this.board.forEach((square, rowIndex) => {
       if (square === 'b') {
@@ -192,6 +171,7 @@ class Board {
   _colourAvailableSquares(availableSquares) {
     const squaresAll = document.querySelectorAll('.board-square');
     availableSquares.forEach(available => {
+      console.log(squaresAll[available]);
       squaresAll[available].dataset.available = true;
     });
   }
@@ -204,16 +184,18 @@ class Board {
   }
 
   _checkWinner() {
-    const currentPlayer = this.player.getCurrentPlayer();
-    const nextPlayer = this.player.getNextPlayer();
-    this.evaluate = new _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__.default(currentPlayer, nextPlayer);
+    const currentPlayer = this.gameConfig.getCurrentPlayer();
+    const nextPlayer = this.gameConfig.getNextPlayer();
+    this.evaluate.setPlayers(currentPlayer, nextPlayer);
     this.evaluate.setBoard([...this.board]);
+    console.log(currentPlayer);
     const availableSquares = this.evaluate.evaluateBoard();
 
     this._colourAvailableSquares(availableSquares); // Find winner if no available squares.
 
 
     if (availableSquares.length === 0) {
+      console.log(this.board);
       const results = this.evaluate.returnResult();
 
       this._displayResults(results);
@@ -256,10 +238,10 @@ class Board {
 
 __webpack_require__.r(__webpack_exports__);
 class GameLogic {
-  constructor(currentPlayer, nextPlayer) {
+  constructor() {
     this.boardState = [];
-    this.currentPlayer = currentPlayer;
-    this.nextPlayer = nextPlayer;
+    this.currentPlayer = null;
+    this.nextPlayer = null;
     this.position = null;
     this.successfulMove = false;
   }
@@ -270,6 +252,11 @@ class GameLogic {
 
   setBoard(board) {
     this.boardState = board;
+  }
+
+  setPlayers(currentPlayer, nextPlayer) {
+    this.currentPlayer = currentPlayer;
+    this.nextPlayer = nextPlayer;
   }
 
   checkNextItem() {
@@ -431,10 +418,15 @@ class GameLogic {
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
-class Player {
+/*
+	Class to look after player and board information.
+	Getter and setter methods return and update values.
+*/
+class GameConfig {
   constructor() {
     this.currentPlayer = 'b';
     this.nextPlayer = 'w';
+    this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   }
 
   changePlayer() {
@@ -455,9 +447,13 @@ class Player {
     return this.currentPlayer;
   }
 
+  getBoard() {
+    return this.board;
+  }
+
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (Player);
+/* harmony default export */ __webpack_exports__["default"] = (GameConfig);
 
 /***/ }),
 /* 4 */
@@ -468,20 +464,26 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class BoardEvaluation {
-  constructor(currentPlayer, nextPlayer) {
-    this.currentPlayer = currentPlayer;
-    this.nextPlayer = nextPlayer;
+  constructor() {
+    this.currentPlayer = null;
+    this.nextPlayer = null;
     this.boardCurrentState = [];
-    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(this.currentPlayer, this.nextPlayer);
+    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default();
   }
 
   setBoard(board) {
     this.boardCurrentState = board;
   }
 
+  setPlayers(currentPlayer, nextPlayer) {
+    this.currentPlayer = currentPlayer;
+    this.nextPlayer = nextPlayer;
+  }
+
   evaluateBoard() {
-    // Check that there are no more available moves:
+    this.logic.setPlayers(this.currentPlayer, this.nextPlayer); // Check that there are no more available moves:
     // Loop through array and checkNextItem() for `0` squares.
+
     const availableSquares = [];
     this.boardCurrentState.forEach((item, index) => {
       if (item === 0) {
@@ -550,7 +552,8 @@ class SearchAI {
   }
 
   createLogicInstance() {
-    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default(this.currentPlayer, this.nextPlayer);
+    this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default();
+    this.logic.setPlayers(this.currentPlayer, this.nextPlayer);
   }
 
   runSearch() {

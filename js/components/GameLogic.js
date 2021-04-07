@@ -1,8 +1,8 @@
 class GameLogic {
-	constructor(currentPlayer, nextPlayer) {
+	constructor() {
 		this.boardState = [];
-		this.currentPlayer = currentPlayer;
-		this.nextPlayer = nextPlayer;
+		this.currentPlayer = null;
+		this.nextPlayer = null;
 		this.position = null;
 		this.successfulMove = false;
 	}
@@ -13,6 +13,11 @@ class GameLogic {
 
 	setBoard(board) {
 		this.boardState = board;
+	}
+
+	setPlayers(currentPlayer, nextPlayer) {
+		this.currentPlayer = currentPlayer;
+		this.nextPlayer = nextPlayer;
 	}
 
 	checkNextItem() {

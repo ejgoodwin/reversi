@@ -35,7 +35,8 @@ class SearchAI {
 	}
 
 	createLogicInstance() {
-		this.logic = new GameLogic(this.currentPlayer, this.nextPlayer);
+		this.logic = new GameLogic();
+		this.logic.setPlayers(this.currentPlayer, this.nextPlayer);
 	}
 
 	runSearch() {
