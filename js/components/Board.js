@@ -11,9 +11,9 @@ class Board {
 		this.wrongSquareEl = this.game.querySelector('.wrong-square');
 		this.playerMessageEl = this.game.querySelector('.current-player');
 		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
-		this.prevBoard = [];
 		this.gameConfig = new GameConfig();
 		this.board = this.gameConfig.getBoard();
+		this.prevBoard = this.gameConfig.getPrevBoard();
 		this.minimax = new SearchAI();
 		this.logic = new GameLogic();
 		this.evaluate = new BoardEvaluation();
@@ -151,7 +151,6 @@ class Board {
 	_colourAvailableSquares(availableSquares) {
 		const squaresAll = document.querySelectorAll('.board-square');
 		availableSquares.forEach((available) => {
-			console.log(squaresAll[available])
 			squaresAll[available].dataset.available = true;
 		});
 	}

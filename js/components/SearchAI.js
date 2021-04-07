@@ -31,18 +31,12 @@ class SearchAI {
 	setPlayers(currentPlayer, nextPlayer) {
 		this.currentPlayer = currentPlayer;
 		this.nextPlayer = nextPlayer;
-		this.createLogicInstance();
-	}
-
-	createLogicInstance() {
 		this.logic = new GameLogic();
 		this.logic.setPlayers(this.currentPlayer, this.nextPlayer);
 	}
 
 	runSearch() {
-		console.log(this.currentPlayer)
-		const selectedMove = this.minimax(this.board, this.currentPlayer, 0).index;
-		return selectedMove;
+		return this.minimax([...this.board], this.currentPlayer, 0).index;
 	}
 
 	minimax(testBoard, player, depth) {
@@ -50,7 +44,7 @@ class SearchAI {
 		const availSquares = this.evaluateBoard(testBoard);
 
 		// If end of depth, see who has the best score.
-		if (depth === 2 || availSquares.length < 1) {
+		if (depth === 4 || availSquares.length < 1) {
 			const score = this.boardValue(player, testBoard);
 			return {score: score};
 		}
@@ -71,9 +65,6 @@ class SearchAI {
 					bestScore.score = result.score;
 					bestScore.index = availSquares[i];
 				}
-				// console.log(result);
-				// console.log(bestScore);
-				// console.log(depth);
 				// Reset current square to null 
 				// -> next iteration needs to see state of board prior to that potential move
 				testBoard[availSquares[i]] = 0;
@@ -100,16 +91,24 @@ class SearchAI {
 
 	boardValue(player, testBoard) {
 		let score = 0;
+		// let black = 0;
+		// let white = 0;
 		// Compare player's squares agains weighted board.
 		this.weightedBoard.forEach((weight, index) => {
 			if (testBoard[index] === player) {
 				if (player === 'w') {
 					score += weight;
+					// white++;
 				} else {
 					score -= weight;
+					// black++;
 				}
 			}
 		});
+
+		// if (white > black) {
+		// 	score += 10;
+		// }
 
 		return score;
 	}

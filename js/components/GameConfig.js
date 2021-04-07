@@ -1,6 +1,5 @@
 /*
 	Class to look after player and board information.
-	Getter and setter methods return and update values.
 */
 
 class GameConfig {
@@ -17,6 +16,7 @@ class GameConfig {
 			0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0
 		];
+		this.prevBoard =[];
 	}
 
 	changePlayer() {
@@ -39,6 +39,14 @@ class GameConfig {
 
 	getBoard() {
 		return this.board;
+	}
+
+	addToPrevBoard(boardIn) {
+		this.prevBoard.push(boardIn);
+	}
+
+	getPrevBoard() {
+		return this.prevBoard;
 	}
 }
 

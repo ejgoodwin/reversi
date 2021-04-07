@@ -23,9 +23,9 @@ class Board {
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
-    this.prevBoard = [];
     this.gameConfig = new _GameConfig_js__WEBPACK_IMPORTED_MODULE_1__.default();
     this.board = this.gameConfig.getBoard();
+    this.prevBoard = this.gameConfig.getPrevBoard();
     this.minimax = new _SearchAI_js__WEBPACK_IMPORTED_MODULE_3__.default();
     this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default();
     this.evaluate = new _BoardEvaluation_js__WEBPACK_IMPORTED_MODULE_2__.default();
@@ -171,7 +171,6 @@ class Board {
   _colourAvailableSquares(availableSquares) {
     const squaresAll = document.querySelectorAll('.board-square');
     availableSquares.forEach(available => {
-      console.log(squaresAll[available]);
       squaresAll[available].dataset.available = true;
     });
   }
@@ -420,13 +419,13 @@ class GameLogic {
 __webpack_require__.r(__webpack_exports__);
 /*
 	Class to look after player and board information.
-	Getter and setter methods return and update values.
 */
 class GameConfig {
   constructor() {
     this.currentPlayer = 'b';
     this.nextPlayer = 'w';
     this.board = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.prevBoard = [];
   }
 
   changePlayer() {
@@ -449,6 +448,14 @@ class GameConfig {
 
   getBoard() {
     return this.board;
+  }
+
+  addToPrevBoard(boardIn) {
+    this.prevBoard.push(boardIn);
+  }
+
+  getPrevBoard() {
+    return this.prevBoard;
   }
 
 }
@@ -548,25 +555,19 @@ class SearchAI {
   setPlayers(currentPlayer, nextPlayer) {
     this.currentPlayer = currentPlayer;
     this.nextPlayer = nextPlayer;
-    this.createLogicInstance();
-  }
-
-  createLogicInstance() {
     this.logic = new _GameLogic_js__WEBPACK_IMPORTED_MODULE_0__.default();
     this.logic.setPlayers(this.currentPlayer, this.nextPlayer);
   }
 
   runSearch() {
-    console.log(this.currentPlayer);
-    const selectedMove = this.minimax(this.board, this.currentPlayer, 0).index;
-    return selectedMove;
+    return this.minimax([...this.board], this.currentPlayer, 0).index;
   }
 
   minimax(testBoard, player, depth) {
     // Find available squares.
     const availSquares = this.evaluateBoard(testBoard); // If end of depth, see who has the best score.
 
-    if (depth === 2 || availSquares.length < 1) {
+    if (depth === 4 || availSquares.length < 1) {
       const score = this.boardValue(player, testBoard);
       return {
         score: score
@@ -587,10 +588,7 @@ class SearchAI {
         if (result.score > bestScore.score) {
           bestScore.score = result.score;
           bestScore.index = availSquares[i];
-        } // console.log(result);
-        // console.log(bestScore);
-        // console.log(depth);
-        // Reset current square to null 
+        } // Reset current square to null 
         // -> next iteration needs to see state of board prior to that potential move
 
 
@@ -621,17 +619,22 @@ class SearchAI {
   }
 
   boardValue(player, testBoard) {
-    let score = 0; // Compare player's squares agains weighted board.
+    let score = 0; // let black = 0;
+    // let white = 0;
+    // Compare player's squares agains weighted board.
 
     this.weightedBoard.forEach((weight, index) => {
       if (testBoard[index] === player) {
         if (player === 'w') {
-          score += weight;
+          score += weight; // white++;
         } else {
-          score -= weight;
+          score -= weight; // black++;
         }
       }
-    });
+    }); // if (white > black) {
+    // 	score += 10;
+    // }
+
     return score;
   }
 
