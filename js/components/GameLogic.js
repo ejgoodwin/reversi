@@ -117,7 +117,7 @@ class GameLogic {
 					return;
 				} else if (board[i+increment] === this.currentPlayer) {
 					this.boardState = board;
-					console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
+					// console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
 					this.successfulMove = true;
 					return;
 				} 
@@ -126,7 +126,7 @@ class GameLogic {
 	}
 
 	_evaluationFunctionNegative(board, condition, decrement, direction) {
-		console.log('checking')
+		// console.log('checking')
 		board[this.position] = this.currentPlayer;
 		for (let i = this.position-decrement; i > condition; i -= decrement) {
 			// If the next square belongs to currentPlayer, cannot be flipped -> break.
@@ -138,7 +138,7 @@ class GameLogic {
 					return;
 				} else if (board[i-decrement] === this.currentPlayer) {
 					this.boardState = board;
-					console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
+					// console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
 					this.successfulMove = true;
 					return;
 				}

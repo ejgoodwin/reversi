@@ -1,6 +1,7 @@
 import GameLogic from './GameLogic.js';
 import Player from './Player.js';
 import BoardEvaluation from './BoardEvaluation.js';
+import SearchAI from './SearchAI.js';
 
 class Board {
 	constructor() {
@@ -22,6 +23,7 @@ class Board {
 		this.wrongSquareEl = this.game.querySelector('.wrong-square');
 		this.playerMessageEl = this.game.querySelector('.current-player');
 		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
+		this.minimax = new SearchAI();
 	}
 
 	_renderBoard() {
@@ -84,12 +86,14 @@ class Board {
 			return;
 		}
 
-		const currentPlayer = this.player.getCurrentPlayer();
-		const nextPlayer = this.player.getNextPlayer();
+		let currentPlayer = this.player.getCurrentPlayer();
+		let nextPlayer = this.player.getNextPlayer();
 		const takeTurn = new GameLogic(currentPlayer, nextPlayer);
 		takeTurn.setPosition(position);
 		takeTurn.setBoard([...this.board]);
+		console.time('checkNext');
 		const newBoard = takeTurn.checkNextItem();
+		console.timeEnd('checkNext');
 		// If the click results in a successful move, assign new board state to board.
 		if (newBoard.successfulMove) {
 			this.prevBoard = this.board;
@@ -103,11 +107,48 @@ class Board {
 			console.log(currentPlayer);
 		} else { // if clicked square is not available, show message.
 			this._wrongSquareMessage();
+			return;
 		}
 
 		// Enable back button.
 		if (this.prevBoard.length > 0) {
 			this.backButton.removeAttribute('disabled');
+		}
+
+		// Check if any winners
+		this._checkWinner();
+
+		// Run AI Search
+		setTimeout(() => {
+			this._computerMove();
+		}, 500);
+		
+	}
+
+	_computerMove() {
+		// Use minimax for next player
+		const currentPlayer = this.player.getCurrentPlayer();
+		const nextPlayer = this.player.getNextPlayer();
+		this.minimax.setBoard([...this.board]);
+		this.minimax.setPlayers(currentPlayer, nextPlayer);
+		const aiMove = this.minimax.runSearch();
+		console.log(aiMove);
+		// Apply that move
+		const aiTurn = new GameLogic(currentPlayer, nextPlayer);
+		aiTurn.setPosition(aiMove);
+		aiTurn.setBoard([...this.board]);
+		const newAiBoard = aiTurn.checkNextItem();
+		console.log(aiTurn);
+		if (newAiBoard.successfulMove) {
+			this.prevBoard = this.board;
+			this.board = newAiBoard.newBoard;
+			this._colourSquares();
+
+			// Next player.
+			this.player.changePlayer();
+			this._updatePlayerMessage();
+			// Remove available square colours
+			this._removeAvailableSquares();
 		}
 
 		// Check if any winners
