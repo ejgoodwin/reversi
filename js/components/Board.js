@@ -218,6 +218,7 @@ class Board {
 	init() {
 		this._renderBoard();
 		this._colourSquares();
+		this._checkWinner();
 	}
 }
 
