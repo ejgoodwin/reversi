@@ -4,7 +4,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Reversi</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
-	<!-- <link rel="icon" type="image/png" href="fav.png"/> -->
 </head>
 <body>
 	<h1 class="game-title">Reversi</h1>
@@ -21,13 +20,15 @@
 		<p class="wrong-square"></p>
 	</section>
 	<section class="results">
-		<p>Black: <span class="results-black"></span></p>
-		<p>White: <span class="results-white"></span></p>
-		<p class="results-winner"></p>
+		<p class="results-winner"><span class="disc results-winner-disc"></span> Winner!</p>
+		<span class="disc disc--white">
+			<span class="results-black"></span>
+		</span>
+		<span class="disc disc--black">
+			<span class="results-white"></span>
+		</span>
 	</section>
 
-	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-	<!-- <script src="main.js"></script> -->
 	<script src="js/run-dist.js"></script>
 </body>
 </html>
