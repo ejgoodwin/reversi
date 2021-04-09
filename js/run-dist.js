@@ -566,7 +566,7 @@ class SearchAI {
     // Find available squares.
     const availSquares = this.evaluateBoard(testBoard); // If end of depth, see who has the best score.
 
-    if (depth === 2 || availSquares.length < 1) {
+    if (depth === 4 || availSquares.length < 1) {
       const score = this.boardValue(player, testBoard);
       return {
         score: score
