@@ -1,18 +1,25 @@
+import gameConfig from '../gameConfig.js';
+
 class GameLogic {
-	constructor(currentPlayer, nextPlayer) {
-		this.boardState = [];
-		this.currentPlayer = currentPlayer;
-		this.nextPlayer = nextPlayer;
-		this.position = null;
+	constructor() {
+		this.currentPlayer = gameConfig.currentPlayer;
+		this.nextPlayer = gameConfig.nextPlayer;
+		this.board = gameConfig.board;
 		this.successfulMove = false;
+		this.position = gameConfig.selectedPosition;
 	}
 
-	setPosition(position) {
-		this.position = position;
+	setPlayers(currentIn, nextIn) {
+		this.currentPlayer = currentIn;
+		this.nextPlayer = nextIn;
 	}
 
-	setBoard(board) {
-		this.boardState = board;
+	setBoard(boardIn) {
+		this.board = boardIn;
+	}
+
+	setPosition(positionIn) {
+		this.position = positionIn;
 	}
 
 	checkNextItem() {
@@ -24,85 +31,85 @@ class GameLogic {
 		this.successfulMove = false;
 
 		// North
-		if (this.boardState[this.position - 8] === this.nextPlayer) {
+		if (this.board[this.position - 8] === this.nextPlayer) {
 			condition = 0;
 			decrement = 8;
-			this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'n');
+			this._evaluationFunctionNegative([...this.board], condition, decrement, 'n');
 		}
 
 		// South.
-		if (this.boardState[this.position + 8] === this.nextPlayer) {
+		if (this.board[this.position + 8] === this.nextPlayer) {
 			condition = 64;
 			increment = 8;
-			this._evaluationFunctionPositive([...this.boardState], condition, increment, 's');
+			this._evaluationFunctionPositive([...this.board], condition, increment, 's');
 		}
 
 		// Check position is not at right edge of board.
 		if (remainder != 7) {
 			// Northeast.
-			if (this.boardState[this.position - 7] === this.nextPlayer) {
+			if (this.board[this.position - 7] === this.nextPlayer) {
 				condition = this.position;
 				decrement = 7;
 				// Find most northeasterly square.
 				while (condition % 8 != 7 && condition >= 0) {
 					condition -= decrement;
 				}
-				this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'ne');
+				this._evaluationFunctionNegative([...this.board], condition, decrement, 'ne');
 			}
 
 			// East.
-			if (this.boardState[this.position + 1] === this.nextPlayer) {
+			if (this.board[this.position + 1] === this.nextPlayer) {
 				calcVar = this.position % 8;
 				condition = this.position+(7-calcVar);
 				increment = 1;
-				this._evaluationFunctionPositive([...this.boardState], condition, increment, 'e');
+				this._evaluationFunctionPositive([...this.board], condition, increment, 'e');
 			}
 
 			// Southeast.
-			if (this.boardState[this.position + 9] === this.nextPlayer) {
+			if (this.board[this.position + 9] === this.nextPlayer) {
 				condition = this.position;
 				increment = 9;
 				// Find most southeasterly square.
 				while (condition % 8 != 7 && condition >= 0) {
 					condition += increment;
 				}
-				this._evaluationFunctionPositive([...this.boardState], condition, increment, 'se');
+				this._evaluationFunctionPositive([...this.board], condition, increment, 'se');
 			}
 		}
 
 		// Check position is not at left edge of board.
 		if (remainder != 0) {
 			// Southwest.
-			if (this.boardState[this.position + 7] === this.nextPlayer) {
+			if (this.board[this.position + 7] === this.nextPlayer) {
 				condition = this.position;
 				increment = 7;
 				// Find most southwesterly square.
 				while (condition % 8 != 0) {
 					condition += increment;
 				}
-				this._evaluationFunctionPositive([...this.boardState], condition, increment, 'sw');
+				this._evaluationFunctionPositive([...this.board], condition, increment, 'sw');
 			}
 
 			// West.
-			if (this.boardState[this.position - 1] === this.nextPlayer) {
+			if (this.board[this.position - 1] === this.nextPlayer) {
 				calcVar = this.position % 8;
 				condition = this.position-calcVar;
 				decrement = 1;
-				this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'w');
+				this._evaluationFunctionNegative([...this.board], condition, decrement, 'w');
 			}
 
 			// Northwest.
-			if (this.boardState[this.position - 9] === this.nextPlayer) {
+			if (this.board[this.position - 9] === this.nextPlayer) {
 				condition = this.position;
 				decrement = 9;
 				// Find most northwesterly square.
 				while (condition % 8 != 0) {
 					condition -= decrement;
 				}
-				this._evaluationFunctionNegative([...this.boardState], condition, decrement, 'nw');
+				this._evaluationFunctionNegative([...this.board], condition, decrement, 'nw');
 			}
 		}
-		return {newBoard: this.boardState, successfulMove: this.successfulMove};
+		return {newBoard:this.board, successfulMove:this.successfulMove};
 	}
 
 	_evaluationFunctionPositive(board, condition, increment, direction) {
@@ -116,7 +123,7 @@ class GameLogic {
 				if (board[i+increment] === 0) {
 					return;
 				} else if (board[i+increment] === this.currentPlayer) {
-					this.boardState = board;
+					this.board = board;
 					// console.log('direction: ' + direction + ' increment: ' + increment + ' condition: ' + condition);
 					this.successfulMove = true;
 					return;
@@ -137,7 +144,7 @@ class GameLogic {
 				if (board[i-decrement] === 0) {
 					return;
 				} else if (board[i-decrement] === this.currentPlayer) {
-					this.boardState = board;
+					this.board = board;
 					// console.log('direction: ' + direction + ' decrement: ' + decrement + ' condition: ' + condition);
 					this.successfulMove = true;
 					return;

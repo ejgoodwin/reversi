@@ -151,17 +151,21 @@ body {
 }
 
 /* Back button */
-.back-btn {
+.history-btn-container {
+	display: flex;
+}
+
+.history-btn {
 	background: #0573bc;
 	border: 0;
 	border-radius: .25rem;
 	color: white;
 	cursor: pointer;
 	padding: .5rem .75rem;
-	margin-top: 1rem;
+	margin: 1rem .25rem 0;
 }
 
-.back-btn:disabled {
+.history-btn:disabled {
 	color: #dcefff;
 	cursor: default;
 	opacity: .7;
@@ -172,6 +176,55 @@ body {
 	display: none;
 }
 
-.results.show-results {
-	display: block;
+.results[data-winner] {
+	display: grid;
+	grid-template-rows: 1fr 50px;
+	grid-template-columns: 1fr 1fr;
+    max-width: 200px;
+    margin: auto;
+}
+
+.results[data-winner='white'] .results-winner-disc {
+	background: white;
+}
+
+.results[data-winner='black'] .results-winner-disc {
+	background: black;
+}
+
+.results-winner-disc {
+	margin-right: .5rem;
+}
+
+.results-winner {
+	align-items: center;
+	display: flex;
+    font-size: 1.5rem;
+	grid-column: span 2;
+	justify-content: center;
+	margin-top: .5rem;
+}
+
+.results-black {
+	color: white;
+}
+
+.disc {
+	align-items: center;
+	border: 1px solid black;
+	border-radius: 50%;
+	display: flex;
+	height: 28px;
+	justify-content: center;
+	width: 28px;
+}
+
+.disc--white {
+	background: white;
+	margin: 0 1rem 0 auto;
+}
+
+.disc--black {
+	background: black;
+	margin: 0 auto 0 1rem;
 }

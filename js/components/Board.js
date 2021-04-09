@@ -1,33 +1,21 @@
-import GameLogic from './GameLogic.js';
-import Player from './Player.js';
 import BoardEvaluation from './BoardEvaluation.js';
-import SearchAI from './SearchAI.js';
+import Player from './Player.js';
+import gameConfig from '../gameConfig.js';
 
 class Board {
 	constructor() {
 		this.game = document.querySelector('.game');
-		this.board = [
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,'b','w',0,0,0,
-			0,0,0,'w','b',0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0
-		];
-		this.prevBoard = [];
 		this.boardEl = this.game.querySelector('.board');
-		this.backButton = this.game.querySelector('.back-btn');
-		this.player = new Player();
+		this.historyButtonAll = this.game.querySelectorAll('.history-btn');
 		this.wrongSquareEl = this.game.querySelector('.wrong-square');
 		this.playerMessageEl = this.game.querySelector('.current-player');
 		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
-		this.minimax = new SearchAI();
+		this.player = new Player();
+		this.evaluate = new BoardEvaluation();
 	}
 
 	_renderBoard() {
-		this.board.forEach((row, index) => {
+		gameConfig.board.forEach((row, index) => {
 			//Create square button.
 			const square = document.createElement('button');
 			// Add classes and data attributes.
@@ -37,15 +25,18 @@ class Board {
 			square.addEventListener('click', (e) => this._handleSquareClick(e));
 			this.boardEl.appendChild(square);
 		});
-		// Add back button event listener
-		this.backButton.addEventListener('click', this._handleBackButton.bind(this));
+		// Add history button event listeners
+		this.historyButtonAll.forEach((btn) => {
+			btn.addEventListener('click', (e) => this._handleHistoryButton(e));
+		});
 		// Add available moves checkbox event listener
 		this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 		this._updatePlayerMessage();
+		gameConfig.addToPrevBoard(gameConfig.board);
 	}
 
 	_updatePlayerMessage() {
-		this.playerMessageEl.dataset.player = this.player.getCurrentPlayer();
+		this.playerMessageEl.dataset.player = gameConfig.currentPlayer;
 	}
 
 	_wrongSquareMessage() {
@@ -55,16 +46,31 @@ class Board {
 		}, 2000);
 	}
 
-	_handleBackButton() {
+	_handleHistoryButton(e) {
+		if (e.target.dataset.direction === 'back') {
+			gameConfig.gameHistory--;
+		} else if(e.target.dataset.direction === 'forward') {
+			gameConfig.gameHistory++;
+		}
+
+		// Add disabled for forward and back when you reach end or start of prevBoard array.
+		if (gameConfig.gameHistory < gameConfig.prevBoard.length-1) {
+			this.historyButtonAll[1].removeAttribute('disabled');
+		} else {
+			this.historyButtonAll[1].setAttribute('disabled', '');
+		}
+		if (gameConfig.gameHistory === 0) {
+			this.historyButtonAll[0].setAttribute('disabled', '');
+		} else {
+			this.historyButtonAll[0].removeAttribute('disabled', '');
+		}
 		// Assign the previous board to the current board.
-		this.board = this.prevBoard;
+		gameConfig.board = gameConfig.prevBoard[gameConfig.gameHistory];
 		// Colour square to show prev (now current) board.
 		this._colourSquares();
 		// Switch player back.
-		this.player.changePlayer();
+		gameConfig.changePlayer();
 		this._updatePlayerMessage();
-		// Add `disabled` attribute to only allow one back move.
-		this.backButton.setAttribute('disabled', '');
 		// Remove and reapply available squares.
 		this._removeAvailableSquares();
 		this._checkWinner();
@@ -80,87 +86,44 @@ class Board {
 
 	_handleSquareClick(e) {
 		// Get clicked square's array index.
-		const position = parseInt(e.target.dataset.position);
+		gameConfig.selectedPosition = parseInt(e.target.dataset.position);
 		// Check clicked square is available.
-		if (this.board[position] != 0) {
+		if (gameConfig.board[gameConfig.selectedPosition] != 0) {
 			return;
 		}
-
-		let currentPlayer = this.player.getCurrentPlayer();
-		let nextPlayer = this.player.getNextPlayer();
-		const takeTurn = new GameLogic(currentPlayer, nextPlayer);
-		takeTurn.setPosition(position);
-		takeTurn.setBoard([...this.board]);
-		console.time('checkNext');
-		const newBoard = takeTurn.checkNextItem();
-		console.timeEnd('checkNext');
-		// If the click results in a successful move, assign new board state to board.
-		if (newBoard.successfulMove) {
-			this.prevBoard = this.board;
-			this.board = newBoard.newBoard;
-			this._colourSquares();
-			// Next player.
-			this.player.changePlayer();
-			this._updatePlayerMessage();
-			// Remove available square colours
-			this._removeAvailableSquares();
-			console.log(currentPlayer);
-		} else { // if clicked square is not available, show message.
-			this._wrongSquareMessage();
-			return;
-		}
-
-		// Enable back button.
-		if (this.prevBoard.length > 0) {
-			this.backButton.removeAttribute('disabled');
-		}
-
-		// Check if any winners
-		this._checkWinner();
-
-		// Run AI Search
-		setTimeout(() => {
-			this._computerMove();
-		}, 500);
-		
+		// Make a move.
+		this._makeMove();
+		// Enable back buttons.
+		this.historyButtonAll[0].removeAttribute('disabled');
 	}
 
-	_computerMove() {
-		// Use minimax for next player
-		const currentPlayer = this.player.getCurrentPlayer();
-		const nextPlayer = this.player.getNextPlayer();
-		this.minimax.setBoard([...this.board]);
-		this.minimax.setPlayers(currentPlayer, nextPlayer);
-		const aiMove = this.minimax.runSearch();
-		console.log(aiMove);
-		// Apply that move
-		const aiTurn = new GameLogic(currentPlayer, nextPlayer);
-		aiTurn.setPosition(aiMove);
-		aiTurn.setBoard([...this.board]);
-		const newAiBoard = aiTurn.checkNextItem();
-		console.log(aiTurn);
-		if (newAiBoard.successfulMove) {
-			this.prevBoard = this.board;
-			this.board = newAiBoard.newBoard;
+	_makeMove() {
+		const move = this.player.makeMove();
+		// If move is successful -> colour squares, check for winner.
+		if (move) {
 			this._colourSquares();
-
-			// Next player.
-			this.player.changePlayer();
 			this._updatePlayerMessage();
 			// Remove available square colours
 			this._removeAvailableSquares();
+			// Check if any winners.
+			this._checkWinner();
+			// Run again as computer player.
+			if (!gameConfig.human) {
+				setTimeout(() => {
+					this._makeMove();
+				}, 500);
+				this._checkWinner();
+			}
+		} else { // if clicked square is not available, show message.
+			this._wrongSquareMessage();
 		}
-
-		// Check if any winners
-		this._checkWinner();
 	}
 
 	_colourSquares() {
 		// Loop through board array to find the black and white positions.
 		// Set data attribute for the squares should be black or white.
-		//console.log(this.board)
 		const squaresAll = document.querySelectorAll('.board-square');
-		this.board.forEach((square, rowIndex) => {
+		gameConfig.board.forEach((square, rowIndex) => {
 			if (square === 'b') {
 				squaresAll[rowIndex].dataset.player = 'b';
 			} else if(square === 'w') {
@@ -182,14 +145,10 @@ class Board {
 		const squaresAll = document.querySelectorAll('.board-square');
 		squaresAll.forEach((square) => {
 			square.dataset.available = false;
-		})
+		});
 	}
 
 	_checkWinner() {
-		const currentPlayer = this.player.getCurrentPlayer();
-		const nextPlayer = this.player.getNextPlayer();
-		this.evaluate = new BoardEvaluation(currentPlayer, nextPlayer);
-		this.evaluate.setBoard([...this.board]);
 		const availableSquares = this.evaluate.evaluateBoard();
 		this._colourAvailableSquares(availableSquares);
 		// Find winner if no available squares.
@@ -200,19 +159,21 @@ class Board {
 	}
 
 	_displayResults(results) {
-		const winnerEl = document.querySelector('.results-winner');
-		document.querySelector('.results').classList.add('show-results');
-		document.querySelector('.results-black').innerHTML = results['b'];
-		document.querySelector('.results-white').innerHTML = results['w'];
+		console.log(results)
+		const winnerEl = document.querySelector('.results');
+		winnerEl.querySelector('.results-black').innerHTML = results.b;
+		winnerEl.querySelector('.results-white').innerHTML = results.w;
 		if (results['b'] === results['w']) {
-			winnerEl.innerHTML = 'Draw!';
+			winnerEl.dataset.winner = 'draw';
+
 		} else if (results['b'] > results['w']) {
-			winnerEl.innerHTML = 'Black wins!';
+			winnerEl.dataset.winner = 'black';
 		} else {
-			winnerEl.innerHTML = 'White wins!';
+			winnerEl.dataset.winner = 'white';
 		}
 		// Disable back button when there is a winner.
-		this.backButton.setAttribute('disabled', true);
+		// this.backButton.setAttribute('disabled', true);
+		// this.forwardButton.setAttribute('disabled', true);
 	}
 
 	init() {
