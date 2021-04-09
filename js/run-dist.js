@@ -587,7 +587,7 @@ class SearchAI {
 
       for (let i = 0; i < availSquares.length; i++) {
         // assign player to the current square.
-        testBoard[availSquares[i]] = player; // store result of minimax -> returns 'bestScore', i.e. {score, index}
+        testBoard[availSquares[i]] = player; // store result of minimax
 
         let result = this.minimax(testBoard, 'b', depth + 1); // Find the MAXIMUM score
 
