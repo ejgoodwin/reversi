@@ -151,17 +151,21 @@ body {
 }
 
 /* Back button */
-.back-btn {
+.history-btn-container {
+	display: flex;
+}
+
+.history-btn {
 	background: #0573bc;
 	border: 0;
 	border-radius: .25rem;
 	color: white;
 	cursor: pointer;
 	padding: .5rem .75rem;
-	margin-top: 1rem;
+	margin: 1rem .25rem 0;
 }
 
-.back-btn:disabled {
+.history-btn:disabled {
 	color: #dcefff;
 	cursor: default;
 	opacity: .7;
@@ -189,19 +193,19 @@ body {
 }
 
 .results-winner-disc {
-	margin-bottom: .5rem;
+	margin-right: .5rem;
 }
 
 .results-winner {
 	align-items: center;
 	display: flex;
-    flex-direction: column;
     font-size: 1.5rem;
 	grid-column: span 2;
+	justify-content: center;
 	margin-top: .5rem;
 }
 
-.results-white {
+.results-black {
 	color: white;
 }
 

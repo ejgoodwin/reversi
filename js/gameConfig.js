@@ -29,6 +29,7 @@ const gameConfig = {
 	addToPrevBoard: function(boardIn) {
 		this.prevBoard.push(boardIn);
 	},
+	gameHistory: 0,
 	selectedPosition: null,
 	currentPlayer: 'b',
 	nextPlayer: 'w',

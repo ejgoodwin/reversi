@@ -24,7 +24,10 @@ class Player {
 		// If the click results in a successful move, assign new board state to board.
 		if (newBoard.successfulMove) {
 			gameConfig.board = newBoard.newBoard;
-			gameConfig.prevBoard = gameConfig.board;
+			gameConfig.gameHistory++;
+			console.log(gameConfig.gameHistory)
+			gameConfig.prevBoard.push(gameConfig.board);
+			console.log(gameConfig.prevBoard);
 			// Next player.
 			gameConfig.changePlayer();
 			return true

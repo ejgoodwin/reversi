@@ -17,7 +17,8 @@ class Board {
   constructor() {
     this.game = document.querySelector('.game');
     this.boardEl = this.game.querySelector('.board');
-    this.backButton = this.game.querySelector('.back-btn');
+    this.backButton = this.game.querySelector('.history-btn--back');
+    this.forwardButton = this.game.querySelector('.history-btn--forward');
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
@@ -35,13 +36,16 @@ class Board {
 
       square.addEventListener('click', e => this._handleSquareClick(e));
       this.boardEl.appendChild(square);
-    }); // Add back button event listener
+    }); // Add history button event listeners
 
-    this.backButton.addEventListener('click', this._handleBackButton.bind(this)); // Add available moves checkbox event listener
+    this.backButton.addEventListener('click', this._handleBackButton.bind(this));
+    this.forwardButton.addEventListener('click', this._handleForwardButton.bind(this)); // Add available moves checkbox event listener
 
     this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 
     this._updatePlayerMessage();
+
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.addToPrevBoard(_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board);
   }
 
   _updatePlayerMessage() {
@@ -56,18 +60,39 @@ class Board {
   }
 
   _handleBackButton() {
-    // Assign the previous board to the current board.
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board = _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard; // Colour square to show prev (now current) board.
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory--; // Assign the previous board to the current board.
+
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board = _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard[_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory]; // Colour square to show prev (now current) board.
 
     this._colourSquares(); // Switch player back.
 
 
-    this.gameConfig.changePlayer();
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.changePlayer();
 
     this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
+    // this.backButton.setAttribute('disabled', '');
+    // Remove and reapply available squares.
 
 
-    this.backButton.setAttribute('disabled', ''); // Remove and reapply available squares.
+    this._removeAvailableSquares();
+
+    this._checkWinner();
+  }
+
+  _handleForwardButton() {
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory++; // Assign the previous board to the current board.
+
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board = _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard[_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory]; // Colour square to show prev (now current) board.
+
+    this._colourSquares(); // Switch player back.
+
+
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.changePlayer();
+
+    this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
+    // this.backButton.setAttribute('disabled', '');
+    // Remove and reapply available squares.
+
 
     this._removeAvailableSquares();
 
@@ -171,6 +196,7 @@ class Board {
   }
 
   _displayResults(results) {
+    console.log(results);
     const winnerEl = document.querySelector('.results');
     winnerEl.querySelector('.results-black').innerHTML = results.b;
     winnerEl.querySelector('.results-white').innerHTML = results.w;
@@ -182,9 +208,9 @@ class Board {
     } else {
       winnerEl.dataset.winner = 'white';
     } // Disable back button when there is a winner.
+    // this.backButton.setAttribute('disabled', true);
+    // this.forwardButton.setAttribute('disabled', true);
 
-
-    this.backButton.setAttribute('disabled', true);
   }
 
   init() {
@@ -270,6 +296,7 @@ const gameConfig = {
   addToPrevBoard: function (boardIn) {
     this.prevBoard.push(boardIn);
   },
+  gameHistory: 0,
   selectedPosition: null,
   currentPlayer: 'b',
   nextPlayer: 'w',
@@ -506,7 +533,10 @@ class Player {
 
     if (newBoard.successfulMove) {
       _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board = newBoard.newBoard;
-      _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.prevBoard = _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board; // Next player.
+      _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.gameHistory++;
+      console.log(_gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.gameHistory);
+      _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.prevBoard.push(_gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board);
+      console.log(_gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.prevBoard); // Next player.
 
       _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.changePlayer();
       return true;
