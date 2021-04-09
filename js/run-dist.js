@@ -17,8 +17,7 @@ class Board {
   constructor() {
     this.game = document.querySelector('.game');
     this.boardEl = this.game.querySelector('.board');
-    this.backButton = this.game.querySelector('.history-btn--back');
-    this.forwardButton = this.game.querySelector('.history-btn--forward');
+    this.historyButtonAll = this.game.querySelectorAll('.history-btn');
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
@@ -38,8 +37,9 @@ class Board {
       this.boardEl.appendChild(square);
     }); // Add history button event listeners
 
-    this.backButton.addEventListener('click', this._handleBackButton.bind(this));
-    this.forwardButton.addEventListener('click', this._handleForwardButton.bind(this)); // Add available moves checkbox event listener
+    this.historyButtonAll.forEach(btn => {
+      btn.addEventListener('click', e => this._handleHistoryButton(e));
+    }); // Add available moves checkbox event listener
 
     this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 
@@ -59,8 +59,26 @@ class Board {
     }, 2000);
   }
 
-  _handleBackButton() {
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory--; // Assign the previous board to the current board.
+  _handleHistoryButton(e) {
+    if (e.target.dataset.direction === 'back') {
+      _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory--;
+    } else if (e.target.dataset.direction === 'forward') {
+      _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory++;
+    } // Add disabled for forward and back when you reach end or start of prevBoard array.
+
+
+    if (_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory < _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard.length - 1) {
+      this.historyButtonAll[1].removeAttribute('disabled');
+    } else {
+      this.historyButtonAll[1].setAttribute('disabled', '');
+    }
+
+    if (_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory === 0) {
+      this.historyButtonAll[0].setAttribute('disabled', '');
+    } else {
+      this.historyButtonAll[0].removeAttribute('disabled', '');
+    } // Assign the previous board to the current board.
+
 
     _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board = _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard[_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory]; // Colour square to show prev (now current) board.
 
@@ -69,29 +87,7 @@ class Board {
 
     _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.changePlayer();
 
-    this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
-    // this.backButton.setAttribute('disabled', '');
-    // Remove and reapply available squares.
-
-
-    this._removeAvailableSquares();
-
-    this._checkWinner();
-  }
-
-  _handleForwardButton() {
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory++; // Assign the previous board to the current board.
-
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board = _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard[_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory]; // Colour square to show prev (now current) board.
-
-    this._colourSquares(); // Switch player back.
-
-
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.changePlayer();
-
-    this._updatePlayerMessage(); // Add `disabled` attribute to only allow one back move.
-    // this.backButton.setAttribute('disabled', '');
-    // Remove and reapply available squares.
+    this._updatePlayerMessage(); // Remove and reapply available squares.
 
 
     this._removeAvailableSquares();
@@ -116,12 +112,10 @@ class Board {
     } // Make a move.
 
 
-    this._makeMove(); // Enable back button.
+    this._makeMove(); // Enable back buttons.
 
 
-    if (_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard.length > 0) {
-      this.backButton.removeAttribute('disabled');
-    }
+    this.historyButtonAll[0].removeAttribute('disabled');
   }
 
   _makeMove() {
@@ -156,7 +150,6 @@ class Board {
     // Loop through board array to find the black and white positions.
     // Set data attribute for the squares should be black or white.
     const squaresAll = document.querySelectorAll('.board-square');
-    console.log(_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board);
     _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board.forEach((square, rowIndex) => {
       if (square === 'b') {
         squaresAll[rowIndex].dataset.player = 'b';

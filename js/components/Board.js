@@ -6,8 +6,7 @@ class Board {
 	constructor() {
 		this.game = document.querySelector('.game');
 		this.boardEl = this.game.querySelector('.board');
-		this.backButton = this.game.querySelector('.history-btn--back');
-		this.forwardButton = this.game.querySelector('.history-btn--forward');
+		this.historyButtonAll = this.game.querySelectorAll('.history-btn');
 		this.wrongSquareEl = this.game.querySelector('.wrong-square');
 		this.playerMessageEl = this.game.querySelector('.current-player');
 		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
@@ -27,8 +26,9 @@ class Board {
 			this.boardEl.appendChild(square);
 		});
 		// Add history button event listeners
-		this.backButton.addEventListener('click', this._handleBackButton.bind(this));
-		this.forwardButton.addEventListener('click', this._handleForwardButton.bind(this));
+		this.historyButtonAll.forEach((btn) => {
+			btn.addEventListener('click', (e) => this._handleHistoryButton(e));
+		});
 		// Add available moves checkbox event listener
 		this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 		this._updatePlayerMessage();
@@ -46,24 +46,24 @@ class Board {
 		}, 2000);
 	}
 
-	_handleBackButton() {
-		gameConfig.gameHistory--;
-		// Assign the previous board to the current board.
-		gameConfig.board = gameConfig.prevBoard[gameConfig.gameHistory];
-		// Colour square to show prev (now current) board.
-		this._colourSquares();
-		// Switch player back.
-		gameConfig.changePlayer();
-		this._updatePlayerMessage();
-		// Add `disabled` attribute to only allow one back move.
-		// this.backButton.setAttribute('disabled', '');
-		// Remove and reapply available squares.
-		this._removeAvailableSquares();
-		this._checkWinner();
-	}
+	_handleHistoryButton(e) {
+		if (e.target.dataset.direction === 'back') {
+			gameConfig.gameHistory--;
+		} else if(e.target.dataset.direction === 'forward') {
+			gameConfig.gameHistory++;
+		}
 
-	_handleForwardButton() {
-		gameConfig.gameHistory++;
+		// Add disabled for forward and back when you reach end or start of prevBoard array.
+		if (gameConfig.gameHistory < gameConfig.prevBoard.length-1) {
+			this.historyButtonAll[1].removeAttribute('disabled');
+		} else {
+			this.historyButtonAll[1].setAttribute('disabled', '');
+		}
+		if (gameConfig.gameHistory === 0) {
+			this.historyButtonAll[0].setAttribute('disabled', '');
+		} else {
+			this.historyButtonAll[0].removeAttribute('disabled', '');
+		}
 		// Assign the previous board to the current board.
 		gameConfig.board = gameConfig.prevBoard[gameConfig.gameHistory];
 		// Colour square to show prev (now current) board.
@@ -71,8 +71,6 @@ class Board {
 		// Switch player back.
 		gameConfig.changePlayer();
 		this._updatePlayerMessage();
-		// Add `disabled` attribute to only allow one back move.
-		// this.backButton.setAttribute('disabled', '');
 		// Remove and reapply available squares.
 		this._removeAvailableSquares();
 		this._checkWinner();
@@ -95,10 +93,8 @@ class Board {
 		}
 		// Make a move.
 		this._makeMove();
-		// Enable back button.
-		if (gameConfig.prevBoard.length > 0) {
-			this.backButton.removeAttribute('disabled');
-		}
+		// Enable back buttons.
+		this.historyButtonAll[0].removeAttribute('disabled');
 	}
 
 	_makeMove() {
@@ -127,7 +123,6 @@ class Board {
 		// Loop through board array to find the black and white positions.
 		// Set data attribute for the squares should be black or white.
 		const squaresAll = document.querySelectorAll('.board-square');
-		console.log(gameConfig.board);
 		gameConfig.board.forEach((square, rowIndex) => {
 			if (square === 'b') {
 				squaresAll[rowIndex].dataset.player = 'b';
