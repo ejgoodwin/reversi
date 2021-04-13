@@ -26,16 +26,20 @@ class Board {
   }
 
   _renderBoard() {
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board.forEach((row, index) => {
-      //Create square button.
-      const square = document.createElement('button'); // Add classes and data attributes.
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        //Create square button.
+        const square = document.createElement('button'); // Add classes and data attributes.
 
-      square.classList.add('board-square');
-      square.dataset.position = index; // Add event listener.
+        square.classList.add('board-square');
+        square.dataset.row = row;
+        square.dataset.col = col; // Add event listener.
 
-      square.addEventListener('click', e => this._handleSquareClick(e));
-      this.boardEl.appendChild(square);
-    }); // Add history button event listeners
+        square.addEventListener('click', e => this._handleSquareClick(e));
+        this.boardEl.appendChild(square);
+      }
+    } // Add history button event listeners
+
 
     this.historyButtonAll.forEach(btn => {
       btn.addEventListener('click', e => this._handleHistoryButton(e));
@@ -105,9 +109,19 @@ class Board {
 
   _handleSquareClick(e) {
     // Get clicked square's array index.
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.selectedPosition = parseInt(e.target.dataset.position); // Check clicked square is available.
+    const positionRow = parseInt(e.target.dataset.row);
+    const positionCol = parseInt(e.target.dataset.col);
+    const position = {
+      row: positionRow,
+      col: positionCol
+    }; // console.log(position);
+    // Check clicked square is available.
 
-    if (_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board[_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.selectedPosition] != 0) {
+    const availBlack = this.board.black.find(item => item = position);
+    const availWhite = this.board.white.find(item => item = position);
+
+    if (availBlack || availWhite) {
+      // if this combination exists in board -> this square is taken.
       return;
     } // Make a move.
 
@@ -147,17 +161,13 @@ class Board {
   }
 
   _colourSquares() {
-    // Loop through board array to find the black and white positions.
-    // Set data attribute for the squares should be black or white.
-    const squaresAll = document.querySelectorAll('.board-square');
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board.forEach((square, rowIndex) => {
-      if (square === 'b') {
-        squaresAll[rowIndex].dataset.player = 'b';
-      } else if (square === 'w') {
-        squaresAll[rowIndex].dataset.player = 'w';
-      } else if (square === 0) {
-        squaresAll[rowIndex].dataset.player = '';
-      }
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board.white.forEach(whiteSquare => {
+      // console.log(whiteSquare);
+      this.game.querySelector(`[data-row="${whiteSquare.row}"][data-col="${whiteSquare.col}"]`).dataset.player = 'w';
+    });
+    _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.board.black.forEach(blackSquare => {
+      // console.log(blackSquare);
+      this.game.querySelector(`[data-row="${blackSquare.row}"][data-col="${blackSquare.col}"]`).dataset.player = 'b';
     });
   }
 
@@ -237,20 +247,19 @@ class BoardEvaluation {
     this.logic.setPlayers(_gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.currentPlayer, _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.nextPlayer); // Check that there are no more available moves:
     // Loop through array and checkNextItem() for `0` squares.
 
-    const availableSquares = [];
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board.forEach((item, index) => {
-      if (item === 0) {
-        // Pass the position and fresh copy of board to GameLogic.
-        this.logic.setPosition(index);
-        this.logic.setBoard([..._gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board]);
-        let nextItem = this.logic.checkNextItem();
-
-        if (nextItem.successfulMove === true) {
-          // This move is available -> add it to the array.
-          availableSquares.push(index);
-        }
-      }
-    }); // Return an array of available squares (empty if non available).
+    const availableSquares = []; // gameConfig.board.forEach((item, index) => {
+    // 	if (item === 0) {
+    // 		// Pass the position and fresh copy of board to GameLogic.
+    // 		this.logic.setPosition(index);
+    // 		this.logic.setBoard([...gameConfig.board]);
+    // 		let nextItem = this.logic.checkNextItem();
+    // 		if (nextItem.successfulMove === true) {
+    // 			// This move is available -> add it to the array.
+    // 			availableSquares.push(index);
+    // 		}
+    // 	}
+    // });
+    // Return an array of available squares (empty if non available).
 
     return availableSquares;
   }
@@ -261,14 +270,14 @@ class BoardEvaluation {
       'b': 0,
       'w': 0
     }; // Loop through the board items and add 1 to corresponding key/value.
+    // gameConfig.board.forEach((item) => {
+    // 	if (item === 'b') {
+    // 		results['b'] += 1;
+    // 	} else if (item === 'w') {
+    // 		results['w'] += 1;
+    // 	}
+    // });
 
-    _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board.forEach(item => {
-      if (item === 'b') {
-        results['b'] += 1;
-      } else if (item === 'w') {
-        results['w'] += 1;
-      }
-    });
     return results;
   }
 
@@ -282,7 +291,25 @@ class BoardEvaluation {
 
 __webpack_require__.r(__webpack_exports__);
 const gameConfig = {
-  board: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  board1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'b', 'w', 0, 0, 0, 0, 0, 0, 'w', 'b', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  board: {
+    col: 8,
+    row: 8,
+    black: [{
+      col: 3,
+      row: 3
+    }, {
+      col: 4,
+      row: 4
+    }],
+    white: [{
+      col: 4,
+      row: 3
+    }, {
+      col: 3,
+      row: 4
+    }]
+  },
   weightedBoard: [99, -8, 20, 15, 15, 20, -8, 99, -8, -24, -4, -3, -3, -4, -24, -8, 20, -4, 6, 4, 4, 6, -4, 20, 15, -3, 4, 0, 0, 4, -3, 15, 15, -3, 4, 0, 0, 4, -3, 15, 20, -4, 6, 4, 4, 6, -4, 20, -8, -24, -4, -3, -3, -4, -24, -8, 99, -8, 20, 15, 15, 20, -8, 99],
   patterns: [[1, 2, 3, 4, 5, 6], [15, 23, 31, 39, 47, 55], [57, 58, 59, 60, 61, 62], [8, 16, 24, 32, 40, 48]],
   prevBoard: [],
@@ -315,6 +342,14 @@ const gameConfig = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 
+/*
+	Take a selected position and check all directions for a viable path.
+	A viable path must:
+	- Start with currentPlayer (selected square)
+	- Followed by opponent square
+	- Followed by either opponent or currentPlayer
+	- Must end on currentPlayer
+*/
 
 class GameLogic {
   constructor() {
@@ -323,6 +358,8 @@ class GameLogic {
     this.board = _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board;
     this.successfulMove = false;
     this.position = _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.selectedPosition;
+    this.toFlip = [];
+    this.potentialFlip = [];
   }
 
   setPlayers(currentIn, nextIn) {
@@ -345,6 +382,37 @@ class GameLogic {
     let calcVar;
     let remainder = this.position % 8;
     this.successfulMove = false; // North
+    // Board row - 8
+    // check if that is in opponent
+
+    let checkNorth = this.board.white.find(item => item = {
+      row: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.row - 8,
+      col: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.col
+    });
+
+    if (checkNorth) {
+      for (let i = _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.row - 8; i > 0; i--) {
+        checkNorth = this.board.white.find(item => item = {
+          row: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.row - i,
+          col: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.col
+        });
+        checkNorthCurrentP = this.board.black.find(item => item = {
+          row: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.row - i,
+          col: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.col
+        });
+
+        if (!checkNorth && !checkNorthCurrentP) {
+          // Not in either colour, so not viable route
+          break;
+        } else if (checkNorth) {
+          // Opponent - flip and check next
+          this.board.black.push({
+            row: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.row - i,
+            col: _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.col
+          }); // Filter the white array to remove this square from it?
+        }
+      }
+    }
 
     if (this.board[this.position - 8] === this.nextPlayer) {
       condition = 0;

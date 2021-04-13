@@ -1,5 +1,14 @@
 import gameConfig from '../gameConfig.js';
 
+/*
+	Take a selected position and check all directions for a viable path.
+	A viable path must:
+	- Start with currentPlayer (selected square)
+	- Followed by opponent square
+	- Followed by either opponent or currentPlayer
+	- Must end on currentPlayer
+*/
+
 class GameLogic {
 	constructor() {
 		this.currentPlayer = gameConfig.currentPlayer;
@@ -7,6 +16,8 @@ class GameLogic {
 		this.board = gameConfig.board;
 		this.successfulMove = false;
 		this.position = gameConfig.selectedPosition;
+		this.toFlip = [];
+		this.potentialFlip = [];
 	}
 
 	setPlayers(currentIn, nextIn) {
@@ -31,6 +42,23 @@ class GameLogic {
 		this.successfulMove = false;
 
 		// North
+		// Board row - 8
+		// check if that is in opponent
+		let checkNorth = this.board.white.find(item => item = {row:gameConfig.row-8, col:gameConfig.col});
+		if(checkNorth) {
+			for (let i=gameConfig.row-8; i>0; i--) {
+				checkNorth = this.board.white.find(item => item = {row:gameConfig.row-i, col:gameConfig.col});
+				checkNorthCurrentP = this.board.black.find(item => item = {row:gameConfig.row-i, col:gameConfig.col});
+				if (!checkNorth && !checkNorthCurrentP) { // Not in either colour, so not viable route
+					break;
+				} else if (checkNorth) { // Opponent - flip and check next
+					this.board.black.push({row:gameConfig.row-i, col:gameConfig.col});
+					// Filter the white array to remove this square from it?
+				}
+			}
+
+		}
+
 		if (this.board[this.position - 8] === this.nextPlayer) {
 			condition = 0;
 			decrement = 8;

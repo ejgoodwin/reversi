@@ -15,16 +15,20 @@ class Board {
 	}
 
 	_renderBoard() {
-		gameConfig.board.forEach((row, index) => {
-			//Create square button.
-			const square = document.createElement('button');
-			// Add classes and data attributes.
-			square.classList.add('board-square');
-			square.dataset.position = index;
-			// Add event listener.
-			square.addEventListener('click', (e) => this._handleSquareClick(e));
-			this.boardEl.appendChild(square);
-		});
+		for (let row = 0; row < 8; row++) {
+			for(let col = 0; col < 8; col++) {
+				//Create square button.
+				const square = document.createElement('button');
+				// Add classes and data attributes.
+				square.classList.add('board-square');
+				square.dataset.row = row;
+				square.dataset.col = col;
+				// Add event listener.
+				square.addEventListener('click', (e) => this._handleSquareClick(e));
+				this.boardEl.appendChild(square);
+			}
+			
+		}
 		// Add history button event listeners
 		this.historyButtonAll.forEach((btn) => {
 			btn.addEventListener('click', (e) => this._handleHistoryButton(e));
@@ -86,9 +90,14 @@ class Board {
 
 	_handleSquareClick(e) {
 		// Get clicked square's array index.
-		gameConfig.selectedPosition = parseInt(e.target.dataset.position);
+		const positionRow = parseInt(e.target.dataset.row);
+		const positionCol = parseInt(e.target.dataset.col);
+		const position = {row:positionRow, col:positionCol};
+		// console.log(position);
 		// Check clicked square is available.
-		if (gameConfig.board[gameConfig.selectedPosition] != 0) {
+		const availBlack = this.board.black.find(item => item = position);
+		const availWhite = this.board.white.find(item => item = position);
+		if (availBlack || availWhite) { // if this combination exists in board -> this square is taken.
 			return;
 		}
 		// Make a move.
@@ -120,17 +129,13 @@ class Board {
 	}
 
 	_colourSquares() {
-		// Loop through board array to find the black and white positions.
-		// Set data attribute for the squares should be black or white.
-		const squaresAll = document.querySelectorAll('.board-square');
-		gameConfig.board.forEach((square, rowIndex) => {
-			if (square === 'b') {
-				squaresAll[rowIndex].dataset.player = 'b';
-			} else if(square === 'w') {
-				squaresAll[rowIndex].dataset.player = 'w';
-			} else if (square === 0) {
-				squaresAll[rowIndex].dataset.player = '';
-			}
+		gameConfig.board.white.forEach(whiteSquare => {
+			// console.log(whiteSquare);
+			this.game.querySelector(`[data-row="${whiteSquare.row}"][data-col="${whiteSquare.col}"]`).dataset.player = 'w';
+		});
+		gameConfig.board.black.forEach(blackSquare => {
+			// console.log(blackSquare);
+			this.game.querySelector(`[data-row="${blackSquare.row}"][data-col="${blackSquare.col}"]`).dataset.player = 'b';
 		});
 	}
 

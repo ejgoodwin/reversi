@@ -1,5 +1,5 @@
 const gameConfig = {
-	board: [
+	board1: [
 		0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,
@@ -9,6 +9,12 @@ const gameConfig = {
 		0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0
 	],
+	board: {
+		col: 8,
+		row: 8,
+		black:[{col:3, row:3}, {col:4, row:4}],
+		white:[{col:4, row:3}, {col:3, row:4}]
+	},
 	weightedBoard: [
 		99,-8,20,15,15,20,-8,99,
 		-8,-24,-4,-3,-3,-4,-24,-8,
