@@ -7,16 +7,16 @@ class SearchAI {
 	}
 
 	runSearch() {
-		return this.minimax([...gameConfig.board], gameConfig.currentPlayer, 0).index;
+		return this._minimax([...gameConfig.board], gameConfig.currentPlayer, 0).index;
 	}
 
-	minimax(testBoard, player, depth) {
+	_minimax(testBoard, player, depth) {
 		// Find available squares.
-		const availSquares = this.evaluateBoard(testBoard);
+		const availSquares = this._evaluateBoard(testBoard);
 
 		// If end of depth, see who has the best score.
 		if (depth === 4 || availSquares.length < 1) {
-			const score = this.boardValue(player, testBoard);
+			const score = this._boardValue(player, testBoard);
 			return {score: score};
 		}
 
@@ -28,8 +28,8 @@ class SearchAI {
 			for (let i = 0; i < availSquares.length; i++) {
 				// assign player to the current square.
 				testBoard[availSquares[i]] = player;
-				// store result of minimax
-				let result = this.minimax(testBoard, 'b', depth+1);
+				// store result of _minimax
+				let result = this._minimax(testBoard, 'b', depth+1);
 				// Find the MAXIMUM score
 				if (result.score > bestScore.score) {					
 					bestScore.score = result.score;
@@ -46,7 +46,7 @@ class SearchAI {
 			bestScore.score = 1000;
 			for (let i = 0; i < availSquares.length; i++) {
 				testBoard[availSquares[i]] = player;
-				let result = this.minimax(testBoard, 'w', depth+1);
+				let result = this._minimax(testBoard, 'w', depth+1);
 				// Find the MINIMUM score
 				if (result.score < bestScore.score) {
 					bestScore.score = result.score;
@@ -59,7 +59,7 @@ class SearchAI {
 		}
 	}
 
-	boardValue(player, testBoard) {
+	_boardValue(player, testBoard) {
 		let score = 0;
 		// Compare player's squares agains weighted board.
 		gameConfig.weightedBoard.forEach((weight, index) => {
@@ -74,7 +74,7 @@ class SearchAI {
 		return score;
 	}
 
-	evaluateBoard(board) {
+	_evaluateBoard(board) {
 		// Check that there are no more available moves:
 		// Loop through array and checkNextItem() for `0` squares.
 		const availableSquares = [];
