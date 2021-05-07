@@ -6,7 +6,8 @@ class Board {
 	constructor() {
 		this.game = document.querySelector('.game');
 		this.boardEl = this.game.querySelector('.board');
-		this.historyButtonAll = this.game.querySelectorAll('.history-btn');
+		this.historyButtonBack = this.game.querySelector('[data-direction="back"]');
+		this.historyButtonForward = this.game.querySelector('[data-direction="forward"]');
 		this.wrongSquareEl = this.game.querySelector('.wrong-square');
 		this.playerMessageEl = this.game.querySelector('.current-player');
 		this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
@@ -26,9 +27,8 @@ class Board {
 			this.boardEl.appendChild(square);
 		});
 		// Add history button event listeners
-		this.historyButtonAll.forEach((btn) => {
-			btn.addEventListener('click', (e) => this._handleHistoryButton(e));
-		});
+		this.historyButtonBack.addEventListener('click', (e) => this._handleHistoryButton(e));
+		this.historyButtonForward.addEventListener('click', (e) => this._handleHistoryButton(e));
 		// Add available moves checkbox event listener
 		this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 		this._updatePlayerMessage();
@@ -49,20 +49,23 @@ class Board {
 	_handleHistoryButton(e) {
 		if (e.target.dataset.direction === 'back') {
 			gameConfig.gameHistory--;
-		} else if(e.target.dataset.direction === 'forward') {
+		} else if (e.target.dataset.direction === 'forward') {
 			gameConfig.gameHistory++;
 		}
 
 		// Add disabled for forward and back when you reach end or start of prevBoard array.
 		if (gameConfig.gameHistory < gameConfig.prevBoard.length-1) {
-			this.historyButtonAll[1].removeAttribute('disabled');
+			this.historyButtonForward.removeAttribute('disabled');
+			this.boardEl.classList.add('board--locked');
 		} else {
-			this.historyButtonAll[1].setAttribute('disabled', '');
+			this.historyButtonForward.setAttribute('disabled', '');
+			this.boardEl.classList.remove('board--locked');
+
 		}
 		if (gameConfig.gameHistory === 0) {
-			this.historyButtonAll[0].setAttribute('disabled', '');
+			this.historyButtonBack.setAttribute('disabled', '');
 		} else {
-			this.historyButtonAll[0].removeAttribute('disabled', '');
+			this.historyButtonBack.removeAttribute('disabled');
 		}
 		// Assign the previous board to the current board.
 		gameConfig.board = gameConfig.prevBoard[gameConfig.gameHistory];
@@ -94,7 +97,7 @@ class Board {
 		// Make a move.
 		this._makeMove();
 		// Enable back buttons.
-		this.historyButtonAll[0].removeAttribute('disabled');
+		this.historyButtonBack.removeAttribute('disabled');
 	}
 
 	_makeMove() {

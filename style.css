@@ -13,7 +13,29 @@ body {
 .board {
 	display: flex;
 	flex-wrap: wrap;
+	position: relative;
 	width: 300px;
+}
+.board--locked::after {
+	background: rgba(0,0,0, .1);
+	border-radius: 5px;
+	bottom: -8px;
+	content: '';
+	left: -8px;
+	position: absolute;
+	right: -8px;
+	top: -8px;
+}
+.board--locked::before {
+	background: #f1a3a3 url(images/lock-solid.svg) no-repeat center;
+    border-radius: 50%;
+    content: '';
+    height: 30px;
+    left: -15px;
+    position: absolute;
+    top: -15px;
+    width: 30px;
+    background-size: 15px;
 }
 .board-square {
 	align-items: center;
@@ -72,7 +94,7 @@ body {
 	align-items: center;
 	cursor: pointer;
 	display: flex;
-	padding-top: 1rem;
+	padding-top: 1.5rem;
 }
 
 .hint-checkbox {
