@@ -17,7 +17,8 @@ class Board {
   constructor() {
     this.game = document.querySelector('.game');
     this.boardEl = this.game.querySelector('.board');
-    this.historyButtonAll = this.game.querySelectorAll('.history-btn');
+    this.historyButtonBack = this.game.querySelector('[data-direction="back"]');
+    this.historyButtonForward = this.game.querySelector('[data-direction="forward"]');
     this.wrongSquareEl = this.game.querySelector('.wrong-square');
     this.playerMessageEl = this.game.querySelector('.current-player');
     this.toggleAvailableMoves = this.game.querySelector('.hint-checkbox');
@@ -37,9 +38,8 @@ class Board {
       this.boardEl.appendChild(square);
     }); // Add history button event listeners
 
-    this.historyButtonAll.forEach(btn => {
-      btn.addEventListener('click', e => this._handleHistoryButton(e));
-    }); // Add available moves checkbox event listener
+    this.historyButtonBack.addEventListener('click', e => this._handleHistoryButton(e));
+    this.historyButtonForward.addEventListener('click', e => this._handleHistoryButton(e)); // Add available moves checkbox event listener
 
     this.toggleAvailableMoves.addEventListener('click', this._handleCheckbox.bind(this));
 
@@ -68,15 +68,17 @@ class Board {
 
 
     if (_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory < _gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.prevBoard.length - 1) {
-      this.historyButtonAll[1].removeAttribute('disabled');
+      this.historyButtonForward.removeAttribute('disabled');
+      this.boardEl.classList.add('board--locked');
     } else {
-      this.historyButtonAll[1].setAttribute('disabled', '');
+      this.historyButtonForward.setAttribute('disabled', '');
+      this.boardEl.classList.remove('board--locked');
     }
 
     if (_gameConfig_js__WEBPACK_IMPORTED_MODULE_2__.default.gameHistory === 0) {
-      this.historyButtonAll[0].setAttribute('disabled', '');
+      this.historyButtonBack.setAttribute('disabled', '');
     } else {
-      this.historyButtonAll[0].removeAttribute('disabled', '');
+      this.historyButtonBack.removeAttribute('disabled');
     } // Assign the previous board to the current board.
 
 
@@ -115,7 +117,7 @@ class Board {
     this._makeMove(); // Enable back buttons.
 
 
-    this.historyButtonAll[0].removeAttribute('disabled');
+    this.historyButtonBack.removeAttribute('disabled');
   }
 
   _makeMove() {
@@ -559,15 +561,17 @@ class SearchAI {
   }
 
   runSearch() {
-    return this.minimax([..._gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board], _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.currentPlayer, 0).index;
+    return this._minimax([..._gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.board], _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.currentPlayer, 0).index;
   }
 
-  minimax(testBoard, player, depth) {
+  _minimax(testBoard, player, depth) {
     // Find available squares.
-    const availSquares = this.evaluateBoard(testBoard); // If end of depth, see who has the best score.
+    const availSquares = this._evaluateBoard(testBoard); // If end of depth, see who has the best score.
+
 
     if (depth === 4 || availSquares.length < 1) {
-      const score = this.boardValue(player, testBoard);
+      const score = this._boardValue(player, testBoard);
+
       return {
         score: score
       };
@@ -580,9 +584,10 @@ class SearchAI {
 
       for (let i = 0; i < availSquares.length; i++) {
         // assign player to the current square.
-        testBoard[availSquares[i]] = player; // store result of minimax
+        testBoard[availSquares[i]] = player; // store result of _minimax
 
-        let result = this.minimax(testBoard, 'b', depth + 1); // Find the MAXIMUM score
+        let result = this._minimax(testBoard, 'b', depth + 1); // Find the MAXIMUM score
+
 
         if (result.score > bestScore.score) {
           bestScore.score = result.score;
@@ -602,7 +607,9 @@ class SearchAI {
 
       for (let i = 0; i < availSquares.length; i++) {
         testBoard[availSquares[i]] = player;
-        let result = this.minimax(testBoard, 'w', depth + 1); // Find the MINIMUM score
+
+        let result = this._minimax(testBoard, 'w', depth + 1); // Find the MINIMUM score
+
 
         if (result.score < bestScore.score) {
           bestScore.score = result.score;
@@ -617,7 +624,7 @@ class SearchAI {
     }
   }
 
-  boardValue(player, testBoard) {
+  _boardValue(player, testBoard) {
     let score = 0; // Compare player's squares agains weighted board.
 
     _gameConfig_js__WEBPACK_IMPORTED_MODULE_0__.default.weightedBoard.forEach((weight, index) => {
@@ -632,7 +639,7 @@ class SearchAI {
     return score;
   }
 
-  evaluateBoard(board) {
+  _evaluateBoard(board) {
     // Check that there are no more available moves:
     // Loop through array and checkNextItem() for `0` squares.
     const availableSquares = [];
