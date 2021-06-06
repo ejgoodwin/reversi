@@ -584,9 +584,14 @@ class SearchAI {
 
       for (let i = 0; i < availSquares.length; i++) {
         // assign player to the current square.
-        testBoard[availSquares[i]] = player; // store result of _minimax
+        //testBoard[availSquares[i]] = player;
+        // store result of _minimax
+        this.logic.setPosition(availSquares[i]);
+        this.logic.setBoard([...testBoard]);
+        this.logic.setPlayers('w', 'b');
+        let newBoard = this.logic.checkNextItem().newBoard;
 
-        let result = this._minimax(testBoard, 'b', depth + 1); // Find the MAXIMUM score
+        let result = this._minimax(newBoard, 'b', depth + 1); // Find the MAXIMUM score
 
 
         if (result.score > bestScore.score) {
@@ -594,9 +599,8 @@ class SearchAI {
           bestScore.index = availSquares[i];
         } // Reset current square to null 
         // -> next iteration needs to see state of board prior to that potential move
+        //testBoard[availSquares[i]] = 0;
 
-
-        testBoard[availSquares[i]] = 0;
       } // console.log(bestScore);
 
 
@@ -606,17 +610,20 @@ class SearchAI {
       bestScore.score = 1000;
 
       for (let i = 0; i < availSquares.length; i++) {
-        testBoard[availSquares[i]] = player;
+        //testBoard[availSquares[i]] = player;
+        this.logic.setPosition(availSquares[i]);
+        this.logic.setBoard([...testBoard]);
+        this.logic.setPlayers('b', 'w');
+        let newBoard = this.logic.checkNextItem().newBoard;
 
-        let result = this._minimax(testBoard, 'w', depth + 1); // Find the MINIMUM score
+        let result = this._minimax(newBoard, 'w', depth + 1); // Find the MINIMUM score
 
 
         if (result.score < bestScore.score) {
           bestScore.score = result.score;
           bestScore.index = availSquares[i];
-        }
+        } //testBoard[availSquares[i]] = 0;
 
-        testBoard[availSquares[i]] = 0;
       } // console.log(bestScore);
 
 
@@ -674,8 +681,9 @@ class SearchAI {
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
-/******/ 		if(__webpack_module_cache__[moduleId]) {
-/******/ 			return __webpack_module_cache__[moduleId].exports;
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
