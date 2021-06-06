@@ -20,36 +20,30 @@ class SearchAI {
 			return {score: score};
 		}
 
-		// Start min/max
+		// Start min/max.
 		if (player === 'w') {
 	 		let bestScore = {};
 			bestScore.score = -1000;
-			// loop through available squares.
+			// Loop through available squares.
 			for (let i = 0; i < availSquares.length; i++) {
-				// assign player to the current square.
-				//testBoard[availSquares[i]] = player;
-				// store result of _minimax
+				// Create new board state using new position (i).
 				this.logic.setPosition(availSquares[i]);
 				this.logic.setBoard([...testBoard]);
 				this.logic.setPlayers('w', 'b');
 				let newBoard = this.logic.checkNextItem().newBoard;
+				// Store result of minimax, passing new board state.
 				let result = this._minimax(newBoard, 'b', depth+1);
 				// Find the MAXIMUM score
 				if (result.score > bestScore.score) {					
 					bestScore.score = result.score;
 					bestScore.index = availSquares[i];
 				}
-				// Reset current square to null 
-				// -> next iteration needs to see state of board prior to that potential move
-				//testBoard[availSquares[i]] = 0;
 			}
-			// console.log(bestScore);
 			return bestScore;
 		} else {
 			let bestScore = {};
 			bestScore.score = 1000;
 			for (let i = 0; i < availSquares.length; i++) {
-				//testBoard[availSquares[i]] = player;
 				this.logic.setPosition(availSquares[i]);
 				this.logic.setBoard([...testBoard]);
 				this.logic.setPlayers('b', 'w');
@@ -60,9 +54,7 @@ class SearchAI {
 					bestScore.score = result.score;
 					bestScore.index = availSquares[i];
 				}
-				//testBoard[availSquares[i]] = 0;
 			}
-			// console.log(bestScore);
 			return bestScore;
 		}
 	}
